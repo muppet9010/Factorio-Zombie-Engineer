@@ -1,0 +1,13 @@
+{
+    "name": "Zombie_Engineer",
+    "version": "1.0.0",
+    "title": "Zombie Engineer",
+    "author": "Muppet9010",
+    "contact": "",
+    "homepage": "https://mods.factorio.com/mod/Zombie_Engineer",
+    "factorio_version": "1.1",
+    "dependencies": [
+        "base >= 1.1"
+    ],
+    "description": "When the engineer dies, their corpse rises again and it's not happy!"
+}
