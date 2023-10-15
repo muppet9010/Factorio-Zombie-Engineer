@@ -1,6 +1,4 @@
-Preparation
------------
-- Update UTILS to new Factorio Debug Adapter API docs standards so all the warnings go away. See Inbuilt Lighting for where we have to ignore some Factorio API docs excessive field requirements on some functions input objects. ---@diagnostic disable: missing-fields # create_entity Factorio object definition expects too much.
+Can I remove and replace all instances of "---@diagnostic disable: no-unknown"
 
 
 Required
@@ -24,14 +22,15 @@ Nice To Have
 - When a player is killed by a zombie have an alert text and link to location saying who was killed by what zombie. As default Factorio would just list it as killed by zombie entity name.
 - Add graphical effects to zombie so it stands out. Maybe odd colors, cloud of effects around it, etc.
 - A zombie is friendly to biters, never destroying their stuff.
+- Zombies able to use player weapons to shoot other players and vehicles? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences.
+- Zombies generate slow down and poison effects around them when hurt. Not constantly as that would kill trees and affect biters badly.
 
 
 Unknowns / Undecided
 --------------------
-- When a player is controlling a vehicle should it automatically target the zombie. A player on foot does, a vehicle with no player doesn't.
+- When a player is controlling a vehicle should it automatically target the zombie. A player on foot does, a vehicle with no player doesn't. This may not be configurable independently in the end anyways. See when we get there.
 - If a Zombie kills a player shat should happen. Either a new zombie appears or we could heal/level up the victorious zombie.
 - If a zombie is unable to reach a player for too long it should attack nearest player buildings. Effectively you can't just kite one forever or bounce them between 2 players going in and out of detection range.
-
 
 
 Future Ideas
