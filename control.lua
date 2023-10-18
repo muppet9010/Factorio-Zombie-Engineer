@@ -1,3 +1,5 @@
+local ZombieEngineer = require('scripts.zombie-engineer')
+
 local function CreateGlobals()
 end
 
