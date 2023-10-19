@@ -29,6 +29,37 @@ LoggingUtils.BoundingBoxToString = function(boundingBox)
     return "((" .. boundingBox.left_top.x .. ", " .. boundingBox.left_top.y .. "), (" .. boundingBox.right_bottom.x .. ", " .. boundingBox.right_bottom.y .. "))"
 end
 
+--- Write an error colored text string to the screen (if possible),
+--- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
+---@param text string
+LoggingUtils.PrintError = function(text)
+    if game ~= nil then
+        game.print(tostring(text), Colors.errorMessage)
+    end
+end
+
+--- Write a warning colored text string to the screen (if possible),
+--- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
+---@param text string
+LoggingUtils.PrintWarning = function(text)
+    if game ~= nil then
+        game.print(tostring(text), Colors.warningMessage)
+    end
+end
+
+--- Make a GPS text string for use with an in-game message.
+---@param x double
+---@param y double
+---@param surfaceName? string
+---@return string
+LoggingUtils.MakeGpsRichText = function(x, y, surfaceName)
+    if surfaceName == nil then
+        return "[gps=" .. x .. "," .. y .. "]"
+    else
+        return "[gps=" .. x .. "," .. y .. "," .. surfaceName .. "]"
+    end
+end
+
 --- Write an error colored text string to the screen (if possible), plus the Factorio log file. Not the mod's bespoke log file.
 --- For use in direct error handling.
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.

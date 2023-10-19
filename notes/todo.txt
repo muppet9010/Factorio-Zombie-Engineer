@@ -1,7 +1,7 @@
 Required
 --------
-- When player dies a zombie is created. The zombie gets the players inventory (meaning their corpse vanishes).
-- A zombie will have high health (mod setting), be slow (mod setting) and have a very high damage attack.
++ When player dies a zombie is created. The zombie gets the players inventory (meaning their corpse vanishes).
++ A zombie will have high health (mod setting), be slow (mod setting) and have a very high damage attack.
 - A zombie will be a `unit` and given explicit direct commands. We can't use generic behaviours, but should be able to do desired effect via explicit commands.
 - A zombie should move towards the nearest player if they are within X distance (mod setting). This will need regular updating to both handle players running away fast (e.g. trains) and if the player moves the zombie will need to re-path towards their new position.
 - A zombie should move towards the dead player's spawn if there is no near by player to target.
@@ -21,6 +21,7 @@ Nice To Have
 - A zombie is friendly to biters, never destroying their stuff.
 - Zombies able to use player weapons to shoot other players and vehicles? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences.
 - Zombies generate slow down and poison effects around them when hurt. Not constantly as that would kill trees and affect biters badly.
+- It should take a little bit of time for a player's corpse to turn into a Zombie. If other players remove all of the items from it before then, then no zombie is created. They are deemed to have dealt with the corpse.
 
 
 Unknowns / Undecided

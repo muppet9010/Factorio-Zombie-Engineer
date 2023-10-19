@@ -1,10 +1,12 @@
-local ZombieEngineer = require('scripts.zombie-engineer')
+local ZombieEngineerManager = require('scripts.zombie-engineer-manager')
 
 local function CreateGlobals()
+    ZombieEngineerManager.CreateGlobals()
 end
 
 local function OnLoad()
     --Any Remote Interface registration calls can go in here or in root of control.lua
+    ZombieEngineerManager.OnLoad()
 end
 
 ---@param event EventData.on_runtime_mod_setting_changed|nil # nil value when called from OnStartup (on_init & on_configuration_changed)

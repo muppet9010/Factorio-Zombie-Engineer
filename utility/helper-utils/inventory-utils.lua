@@ -50,7 +50,7 @@ InventoryUtils.TryMoveInventoriesLuaItemStacks = function(sourceInventory, targe
 
     --Do the actual item moving.
     for index = 1, #sourceInventory do
-        local itemStack = sourceInventory[index] ---@type LuaItemStack
+        local itemStack = sourceInventory[index]
         if itemStack.valid_for_read then
             -- Work out how many to try and move.
             local itemStack_originalCount = itemStack.count
@@ -247,6 +247,32 @@ InventoryUtils.GetBuilderInventory = function(builder)
         -- Is god controller doing the building. So return the player.
         return builder
     end
+end
+
+--- Moves all the items in the source inventory into an existing/new Script inventory. Makes and expands the script inventory as required.
+---@param sourceInventory LuaInventory
+---@param scriptInventory? LuaInventory
+---@return LuaInventory
+InventoryUtils.TransferInventoryContentsToScriptInventory = function(sourceInventory, scriptInventory)
+    -- Create/grow the script inventory as required.
+    local sourceInventorySlotCount = #sourceInventory
+    if scriptInventory == nil then
+        scriptInventory = game.create_inventory(sourceInventorySlotCount)
+    else
+        scriptInventory.resize(#scriptInventory + sourceInventorySlotCount)
+    end
+
+    -- Add the items (leaves old inventory unchanged at this point).
+    -- Alternative would be to swap the stacks, which seems more efficient on the c++ side, but needs a bunch more Lua API calls.
+    for index = 1, #sourceInventory do
+        local itemStack = sourceInventory[index]
+        scriptInventory.insert(itemStack)
+    end
+
+    -- Empty the source inventory.
+    sourceInventory.clear()
+
+    return scriptInventory
 end
 
 return InventoryUtils

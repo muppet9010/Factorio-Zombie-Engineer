@@ -49,7 +49,7 @@ local zombieEngineer = {
         animation = TableUtils.DeepCopy(characterPrototypeReference.animations[1].mining_with_tool), -- Copy the no armor animations.
         range_mode = "bounding-box-to-bounding-box"
     },
-    vision_distance = 30, -- TODO: think this should be 0.
+    vision_distance = 0, -- Zombies won't ever auto target anything.
     movement_speed = 0.05,
     distance_per_frame = characterPrototypeReference.distance_per_frame,
     pollution_to_join_attack = 0,
