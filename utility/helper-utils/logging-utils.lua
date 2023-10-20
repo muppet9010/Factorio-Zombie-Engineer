@@ -29,24 +29,6 @@ LoggingUtils.BoundingBoxToString = function(boundingBox)
     return "((" .. boundingBox.left_top.x .. ", " .. boundingBox.left_top.y .. "), (" .. boundingBox.right_bottom.x .. ", " .. boundingBox.right_bottom.y .. "))"
 end
 
---- Write an error colored text string to the screen (if possible),
---- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
----@param text string
-LoggingUtils.PrintError = function(text)
-    if game ~= nil then
-        game.print(tostring(text), Colors.errorMessage)
-    end
-end
-
---- Write a warning colored text string to the screen (if possible),
---- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
----@param text string
-LoggingUtils.PrintWarning = function(text)
-    if game ~= nil then
-        game.print(tostring(text), Colors.warningMessage)
-    end
-end
-
 --- Make a GPS text string for use with an in-game message.
 ---@param x double
 ---@param y double
@@ -60,37 +42,55 @@ LoggingUtils.MakeGpsRichText = function(x, y, surfaceName)
     end
 end
 
---- Write an error colored text string to the screen (if possible), plus the Factorio log file. Not the mod's bespoke log file.
+--- Write an error colored text string to the screen (if possible) with the mod name included.
+--- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
+---@param text string
+LoggingUtils.PrintError = function(text)
+    if game ~= nil then
+        game.print(LoggingUtils._PrefixModNameToText(text), Colors.errorMessage)
+    end
+end
+
+--- Write a warning colored text string to the screen (if possible) with the mod name included.
+--- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
+---@param text string
+LoggingUtils.PrintWarning = function(text)
+    if game ~= nil then
+        game.print(LoggingUtils._PrefixModNameToText(text), Colors.warningMessage)
+    end
+end
+
+--- Write an error colored text string to the screen (if possible) with the mod name included. Text is also written to the generic Factorio log file. Optionally to the Mod's specific log file as well.
 --- For use in direct error handling.
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
 ---@param recordToModLog? boolean # Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
 LoggingUtils.LogPrintError = function(text, recordToModLog)
     if game ~= nil then
-        game.print(tostring(text), Colors.errorMessage)
+        game.print(LoggingUtils._PrefixModNameToText(text), Colors.errorMessage)
     end
-    log(tostring(text))
+    log(LoggingUtils._PrefixModNameToText(text))
     if recordToModLog then
         LoggingUtils._RecordToModsLog(text)
     end
 end
 
---- Write a warning colored text string to the screen (if possible), plus the Factorio log file. Not the mod's bespoke log file.
+--- Write a warning colored text string to the screen (if possible) with the mod name included. Text is also written to the generic Factorio log file. Optionally to the Mod's specific log file as well.
 --- For use in direct error handling.
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
 ---@param recordToModLog? boolean # Defaults to false. Normally only used to avoid duplicating function calling of LoggingUtils.ModLog().
 LoggingUtils.LogPrintWarning = function(text, recordToModLog)
     if game ~= nil then
-        game.print(tostring(text), Colors.warningMessage)
+        game.print(LoggingUtils._PrefixModNameToText(text), Colors.warningMessage)
     end
-    log(tostring(text))
+    log(LoggingUtils._PrefixModNameToText(text))
     if recordToModLog then
         LoggingUtils._RecordToModsLog(text)
     end
 end
 
---- Write a text string to the screen (if possible), plus the Factorio log file. Not the mod's bespoke log file.
+--- Write a text string to the screen (if possible) with the mod name included. Text is also written to the generic Factorio log file. Optionally to the Mod's specific log file as well.
 --- For use in bespoke situations (and pre LogPrintError).
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
@@ -103,18 +103,18 @@ LoggingUtils.LogPrint = function(text, enabled, textColor, recordToModLog)
     end
     if game ~= nil then
         if textColor == nil then
-            game.print(tostring(text))
+            game.print(LoggingUtils._PrefixModNameToText(text))
         else
-            game.print(tostring(text), textColor)
+            game.print(LoggingUtils._PrefixModNameToText(text), textColor)
         end
     end
-    log(tostring(text))
+    log(LoggingUtils._PrefixModNameToText(text))
     if recordToModLog then
         LoggingUtils._RecordToModsLog(text)
     end
 end
 
---- Write a text string to the mod's log file (if possible) and the Factorio log file. Optionally to the screen as well.
+--- Write a text string to the mod's log file (if possible) with the mod name included. Text is also written to the generic Factorio log file. Optionally to the screen as well.
 --- For use in logging action sequences, rather than direct error handling.
 --- If in data stage can't write to mod's custom log file.
 ---@param text string
@@ -126,12 +126,12 @@ LoggingUtils.ModLog = function(text, writeToScreen, enabled)
     end
     if game ~= nil then
         LoggingUtils._RecordToModsLog(text)
-        log(tostring(text))
+        log(LoggingUtils._PrefixModNameToText(text))
         if writeToScreen then
-            game.print(tostring(text))
+            game.print(LoggingUtils._PrefixModNameToText(text))
         end
     else
-        log(tostring(text))
+        log(LoggingUtils._PrefixModNameToText(text))
     end
 end
 
@@ -383,6 +383,15 @@ end
 LoggingUtils._RunFunctionAndCatchErrors_ErrorHandlerFunction = function(errorMessage)
     local errorObject = { message = errorMessage, stacktrace = debug.traceback() }
     return errorObject
+end
+
+---@param text string
+---@return string
+LoggingUtils._PrefixModNameToText = function(text)
+    if Constants.LogFileName == nil or Constants.LogFileName == "" then
+        game.print("ERROR - No Constants.LogFileName set", Colors.errorMessage)
+    end
+    return Constants.ModFriendlyName .. ": " .. tostring(text)
 end
 
 return LoggingUtils
