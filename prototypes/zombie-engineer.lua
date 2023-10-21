@@ -2,6 +2,15 @@ local TableUtils = require('utility.helper-utils.table-utils')
 
 local characterPrototypeReference = data.raw["character"]["character"]
 
+local meleeAttackRawDuration = 40
+local meleeAttackAnimation = TableUtils.DeepCopy(characterPrototypeReference.animations[1].mining_with_tool) ---@type data.RotatedAnimation # Copy the no armor animations. Is a table of layers of data.RotatedAnimation.
+-- When multiple sequential attacks are made we need to have the attack animations run smoothly into each other. As otherwise the zombie returns to the running animation, as units don't have an idle animation like characters do.
+for _, layer in pairs(meleeAttackAnimation.layers) do
+    -- This is how many frames are played per tick, so higher is faster.
+    layer.animation_speed = (layer.frame_count / meleeAttackRawDuration)
+    layer.hr_version.animation_speed = (layer.hr_version.frame_count / meleeAttackRawDuration)
+end
+
 ---@type data.UnitPrototype
 local zombieEngineer = {
     type = "unit",
@@ -27,8 +36,8 @@ local zombieEngineer = {
     attack_parameters = {
         type = "projectile",
         range = 0.5,
-        cooldown = 40,
-        cooldown_deviation = 0.15,
+        cooldown = meleeAttackRawDuration,
+        cooldown_deviation = 0,
         ammo_type = {
             category = "melee",
             target_type = "entity",
@@ -46,7 +55,7 @@ local zombieEngineer = {
                 }
             }
         },
-        animation = TableUtils.DeepCopy(characterPrototypeReference.animations[1].mining_with_tool), -- Copy the no armor animations.
+        animation = meleeAttackAnimation,
         range_mode = "bounding-box-to-bounding-box"
     },
     vision_distance = 0, -- Zombies won't ever auto target anything.

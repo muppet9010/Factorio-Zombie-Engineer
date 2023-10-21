@@ -1,4 +1,5 @@
 local ZombieEngineerManager = require('scripts.zombie-engineer-manager')
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
 
 local function CreateGlobals()
     ZombieEngineerManager.CreateGlobals()
@@ -20,6 +21,8 @@ local function OnStartup()
     CreateGlobals()
     OnLoad()
     OnSettingChanged(nil)
+
+    ZombieEngineerManager.OnStartup()
 end
 
 
@@ -28,6 +31,9 @@ script.on_init(OnStartup)
 script.on_configuration_changed(OnStartup)
 script.on_event(defines.events.on_runtime_mod_setting_changed, OnSettingChanged)
 script.on_load(OnLoad)
+
+script.on_nth_tick(10, ZombieEngineerManager.ManageAllZombieEngineers)
+EventScheduler.RegisterScheduler()
 
 -- Mod wide function interface table creation. Means EmmyLua can support it.
 MOD = MOD or {} ---@class MOD

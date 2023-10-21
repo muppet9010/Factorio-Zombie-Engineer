@@ -1,13 +1,21 @@
 local Events = require("utility.manager-libraries.events")
 local InventoryUtils = require("utility.helper-utils.inventory-utils")
 local LoggingUtils = require("utility.helper-utils.logging-utils")
+local EventScheduler = require("utility.manager-libraries.event-scheduler")
 
 ---@class ZombieEngineer
 ---@field id uint
+---@field state ZombieEngineer_State
 ---@field entity LuaEntity
 ---@field surface LuaSurface
 ---@field sourcePlayer LuaPlayer
 ---@field inventory LuaInventory
+
+---@enum ZombieEngineer_State
+local ZOMBIE_ENGINEER_STATE = {
+    alive = "alive",
+    dead = "dead"
+}
 
 local ZombieEngineerManager = {} ---@class Class_ZombieEngineerManager
 
@@ -16,11 +24,17 @@ ZombieEngineerManager.CreateGlobals = function()
     global.ZombieEngineerManager.currentId = global.ZombieEngineerManager.currentId or 0 ---@type uint
     global.ZombieEngineerManager.zombieEngineers = global.ZombieEngineerManager.zombieEngineers or {} ---@type table<uint, ZombieEngineer>
 
-    global.ZombieEngineerManager.zombieForce = global.ZombieEngineerManager.zombieForce or ZombieEngineerManager.CreateZombieForce() ---@type LuaForce
+    global.ZombieEngineerManager.zombieForce = global.ZombieEngineerManager.zombieForce ---@type LuaForce # Created as part of OnStartup if required.
 end
 
 ZombieEngineerManager.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_player_died, "ZombieEngineerManager.OnPlayerDied", ZombieEngineerManager.OnPlayerDied)
+end
+
+ZombieEngineerManager.OnStartup = function()
+    if global.ZombieEngineerManager.zombieForce == nil then
+        global.ZombieEngineerManager.zombieForce = ZombieEngineerManager.CreateZombieForce()
+    end
 end
 
 ---@param eventData EventData.on_player_died
@@ -50,11 +64,9 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, surface, cor
     local currentTick = game.tick
 
     local zombieEngineer = {} ---@class ZombieEngineer
-    zombieEngineer.id = global.ZombieEngineerManager.currentId + 1
-    global.ZombieEngineerManager.currentId = global.ZombieEngineerManager.currentId + 1
-
     zombieEngineer.sourcePlayer = player
     zombieEngineer.surface = surface
+    zombieEngineer.state = ZOMBIE_ENGINEER_STATE.alive
 
     -- Find this player's current corpse if one specified and exists, then take the items from it.
     if corpsePosition ~= nil then
@@ -85,8 +97,13 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, surface, cor
         LoggingUtils.PrintError("Failed to create zombie engineer for '" .. player.name .. "' at: " .. LoggingUtils.MakeGpsRichText(zombieCreatePosition.x, zombieCreatePosition.y, surface.name))
         return nil
     end
-    zombieEngineerEntity.color = player.color
+    zombieEngineerEntity.color = player.color --TODO: this fails as units don't utilise a `color` field, unlike a `character`. Need to set a default zombie force custom_color attribute. As our graphics have a tintable flag set on their mask from the core game's character type.
     zombieEngineer.entity = zombieEngineerEntity
+
+    -- Only increment the zombie count and record the zombie object if successful.
+    zombieEngineer.id = global.ZombieEngineerManager.currentId + 1
+    global.ZombieEngineerManager.currentId = global.ZombieEngineerManager.currentId + 1
+    global.ZombieEngineerManager.zombieEngineers[zombieEngineer.id] = zombieEngineer
 
     return zombieEngineer
 end
@@ -105,6 +122,23 @@ ZombieEngineerManager.CreateZombieForce = function()
     playerForce.set_cease_fire(zombieForce, true)
 
     return zombieForce
+end
+
+---@param eventData NthTickEventData
+ZombieEngineerManager.ManageAllZombieEngineers = function(eventData)
+    local currentTick = eventData.tick
+
+    for _, zombieEngineer in pairs(global.ZombieEngineerManager.zombieEngineers) do
+        if zombieEngineer.state == ZOMBIE_ENGINEER_STATE.alive then
+            ZombieEngineerManager.ManageZombieEngineer(zombieEngineer, currentTick)
+        end
+    end
+end
+
+---@param zombieEngineer ZombieEngineer
+---@param currentTick uint
+ZombieEngineerManager.ManageZombieEngineer = function(zombieEngineer, currentTick)
+    --TODO
 end
 
 return ZombieEngineerManager

@@ -55,7 +55,7 @@ end
 ---
 --- Called from OnLoad() from each script file.
 ---@param eventName string
----@param eventFunctionCallback function # The callback function that is called when the scheduled event triggers. The callback function receives a single parameter of type UtilityScheduledEventCallbackObject with relevant information, including any custom data (eventData) populated during the scheduling.
+---@param eventFunctionCallback function # The callback function that is called when the scheduled event triggers. The callback function receives a single argument of type UtilityScheduledEvent_CallbackObject with relevant information, including any custom data (eventData) populated during the scheduling.
 EventScheduler.RegisterScheduledEventType = function(eventName, eventFunctionCallback)
     if eventName == nil or eventFunctionCallback == nil then
         error("EventScheduler.RegisterScheduledEventType called with missing arguments")
@@ -173,7 +173,7 @@ end
 
 --- Schedules an event name to run each tick.
 ---
---- Called from OnStartup() or from some other event or trigger to schedule an event to fire every tick from now on until cancelled.
+--- Called from OnStartup() or from some other event or trigger to schedule an event to fire every tick from now on until cancelled. These schedules last across the save/load cycle.
 ---
 --- Good if you need to pass data back with each firing and the event is going to be stopped/started. If its going to run constantly then better to just register for the on_tick event handler via the Events utility class.
 ---
