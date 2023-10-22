@@ -220,7 +220,7 @@ end
 ---@param theTable table<any,any>
 ---@param value string|number|string|number[] # Either a single value or an array of possible values.
 ---@param returnMultipleResults? boolean # Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
----@return string|number[] # table of keys.
+---@return (string|integer) | (string|integer)[] | nil # key, array of keys, or nil if nothing found.
 TableUtils.GetTableKeyWithValue = function(theTable, value, returnMultipleResults)
     local keysFound = {} ---@type string|number[]
     for k, v in pairs(theTable) do
@@ -242,6 +242,9 @@ TableUtils.GetTableKeyWithValue = function(theTable, value, returnMultipleResult
             end
         end
     end
+    if not returnMultipleResults then
+        return nil
+    end
     return keysFound
 end
 
@@ -250,7 +253,7 @@ end
 ---@param innerKey string|number
 ---@param innerValue string|number|string|number[] # Either a single value or an array of possible values.
 ---@param returnMultipleResults? boolean # Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
----@return string|number[] # table of keys.
+---@return (string|integer) | (string|integer)[] | nil # key, array of keys, or nil if nothing found.
 TableUtils.GetTableKeyWithInnerKeyValue = function(theTable, innerKey, innerValue, returnMultipleResults)
     local keysFound = {} ---@type string|number[]
     local innerTable_innerKey ---@type any
@@ -274,6 +277,9 @@ TableUtils.GetTableKeyWithInnerKeyValue = function(theTable, innerKey, innerValu
             end
         end
     end
+    if not returnMultipleResults then
+        return nil
+    end
     return keysFound
 end
 
@@ -282,7 +288,7 @@ end
 ---@param innerKey string|number
 ---@param innerValue string|number|string|number[] # Either a single value or an array of possible values.
 ---@param returnMultipleResults? boolean # Can return a single result (returnMultipleResults = false/nil) or a list of results (returnMultipleResults = true)
----@return table[] # table of values, which must be a table to have an inner key/value.
+---@return table|table[]|nil # a table order tables with the inner key value, or nil if nothing found.
 TableUtils.GetTableValueWithInnerKeyValue = function(theTable, innerKey, innerValue, returnMultipleResults)
     local valuesFound = {} ---@type table[]
     local innerTable_innerKey ---@type any
@@ -305,6 +311,9 @@ TableUtils.GetTableValueWithInnerKeyValue = function(theTable, innerKey, innerVa
                 end
             end
         end
+    end
+    if not returnMultipleResults then
+        return nil
     end
     return valuesFound
 end

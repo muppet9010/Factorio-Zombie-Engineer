@@ -10,6 +10,8 @@ Required
 + A zombie should either be immune to belts. Alternative would be to view them as a blocking entity and destroy them.
 + A zombie should not be targeted by base defences or any automated fighting which isn't under player control, e.g. combat bots, spidertrons. A player will have to force shoot at the zombie, ideal for when they are in the base ^^
 - Randomly add graves to the map. When mined/destroyed these will create zombies. Graphics from Rubble. Do as an entity type that supports variations so JD-Plays mod can add custom images to it.
+- Make gravestones be auto added to the map. Ideally use noise like rocks so its got a game slider.
+- Make gravestones spawn a zombie when mined/destroyed.
 
 
 Nice To Have
@@ -29,7 +31,10 @@ Nice To Have
     - Probability of a grave containing a zombie.
     - Distance from spawn that the zombie starts to rampage.
     - Player detection range for a zombie.
+    - Enable/Disable gravestones (default to on).
+    - Probability of gravestone spawning a zombie.
 - When a player kills a zombie, add an announcement that they have put the source player to rest. Also track how many zombies each player has killed internally (use o this is a future thing).
+- Zombie should be immune to poison and static discharge defence.
 
 
 Unknowns / Undecided
@@ -66,6 +71,7 @@ Known Limitations
 -----------------
 - It only handles the vanilla forces; player and enemy.
 - It only handles vanilla character graphics.
+- It only handles vanilla entities and tiles for zombie pathing, plus my Biter Eggs mod.
 - You can't force attack a target with your melee weapon (no ammo). So you have to use ammo to attack zombies.
 
 

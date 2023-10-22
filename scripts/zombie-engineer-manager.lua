@@ -34,6 +34,7 @@ ZombieEngineerManager.CreateGlobals = function()
     global.ZombieEngineerManager.zombieEngineers = global.ZombieEngineerManager.zombieEngineers or {} ---@type table<uint, ZombieEngineer>
 
     global.ZombieEngineerManager.zombieForce = global.ZombieEngineerManager.zombieForce ---@type LuaForce # Created as part of OnStartup if required.
+    global.ZombieEngineerManager.zombiePathingCollisionMask = global.ZombieEngineerManager.zombiePathingCollisionMask ---@type data.CollisionMask # Obtained as part of OnStartup if required.
 end
 
 ZombieEngineerManager.OnLoad = function()
@@ -46,6 +47,9 @@ end
 ZombieEngineerManager.OnStartup = function()
     if global.ZombieEngineerManager.zombieForce == nil then
         global.ZombieEngineerManager.zombieForce = ZombieEngineerManager.CreateZombieForce()
+    end
+    if global.ZombieEngineerManager.zombiePathingCollisionMask == nil then
+        global.ZombieEngineerManager.zombiePathingCollisionMask = game.entity_prototypes["zombie_engineer-zombie_engineer_path_collision_layer"].collision_mask
     end
 end
 
@@ -99,13 +103,13 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, surface, cor
     end
 
     -- Create the zombie entity.
-    local zombieCreatePosition = surface.find_non_colliding_position("Zombie_Engineer-zombie_engineer", zombiePosition, 10, 0.1, false)
+    local zombieCreatePosition = surface.find_non_colliding_position("zombie_engineer-zombie_engineer", zombiePosition, 10, 0.1, false)
     if zombieCreatePosition == nil then
         LoggingUtils.PrintError("Failed to find somewhere to create zombie engineer for '" .. player.name .. "' near: " .. LoggingUtils.MakeGpsRichText(zombiePosition.x, zombiePosition.y, surface.name))
         return nil
     end
     ---@diagnostic disable-next-line: missing-fields # Temporary work around until Factorio docs and FMTK updated to allow per type field specification.
-    zombieEngineerEntity = surface.create_entity({ name = "Zombie_Engineer-zombie_engineer", position = zombieCreatePosition, direction = math.random(0, 7), force = global.ZombieEngineerManager.zombieForce })
+    zombieEngineerEntity = surface.create_entity({ name = "zombie_engineer-zombie_engineer", position = zombieCreatePosition, direction = math.random(0, 7), force = global.ZombieEngineerManager.zombieForce })
     if zombieEngineerEntity == nil then
         LoggingUtils.PrintError("Failed to create zombie engineer for '" .. player.name .. "' at: " .. LoggingUtils.MakeGpsRichText(zombieCreatePosition.x, zombieCreatePosition.y, surface.name))
         return nil
@@ -125,7 +129,7 @@ end
 
 ---@return LuaForce
 ZombieEngineerManager.CreateZombieForce = function()
-    local zombieForce = game.create_force("Zombie_Engineer-zombie_engineer")
+    local zombieForce = game.create_force("zombie_engineer-zombie_engineer")
 
     -- Make the zombie and biters be friends.
     local biterForce = game.forces["enemy"]
@@ -157,18 +161,11 @@ end
 ---@param zombieEngineer ZombieEngineer
 ZombieEngineerManager.Test_FindPath = function(zombieEngineer)
     local turret = zombieEngineer.surface.find_entities_filtered({ name = "gun-turret", limit = 1 })[1]
-    --TODO: test how a go_to_location command works if there is an enemy entity on the spot and we set radius to 0. Can we use this to atack whatever is between each tile on a path?
-
-    -- We want to find a rough path to our target going through some player entities rather than always around them when they are in the way. Basically, we want to find the next major obstacle entity to smash through. The low path accuracy helps with this smashing through stuff.
-    -- A larger collision_box than a character seems to help make it go through things.
-    -- We can then try and find the first thing that needs destroying by doing an entity search on that location and attack move the zombie at it. With repeated checks that it can path from current location to this target without needing to destroy anything new. With anything found becoming the new target.
-    local pathRequestId = zombieEngineer.surface.request_path { bounding_box = { { -0.5, -0.5 }, { 0.5, 0.5 } }, collision_mask = { "player-layer" }, start = zombieEngineer.entity.position, goal = turret.position, force = turret.force, radius = 2, pathfind_flags = { allow_destroy_friendly_entities = true, cache = false, no_break = true }, can_open_gates = false, path_resolution_modifier = -1, entity_to_ignore = turret }
-    local x = 1
 
     -- Another way is to get a path that ignores all player entities using a custom collision mask on everything with player-layer other than player buildable entities. Will also avoid water. As we are only adding it to some of the things with player-layer we wouldn't be expanding the overlap in collision masks, so this won't break anything.
+    -- This concept here just uses the resource-layer, as his ignores entities, but respects water. However, we also want to avoid biter bases and worms, plus probably trees and rocks? So maybe more of an explicitly inclusive thing.
     -- We'd then have to check for all entities collision boxes on this path and target the first one.
-    local pathRequestId2 = zombieEngineer.surface.request_path { bounding_box = { { -0.5, -0.5 }, { 0.5, 0.5 } }, collision_mask = { "resource-layer" }, start = zombieEngineer.entity.position, goal = turret.position, force = zombieEngineer.entity.force, radius = 1, pathfind_flags = { cache = false, no_break = true }, can_open_gates = false, path_resolution_modifier = 0, entity_to_ignore = turret }
-    local x2 = 1
+    local pathRequestId2 = zombieEngineer.surface.request_path { bounding_box = { { -0.5, -0.5 }, { 0.5, 0.5 } }, collision_mask = global.ZombieEngineerManager.zombiePathingCollisionMask, start = zombieEngineer.entity.position, goal = turret.position, force = zombieEngineer.entity.force, radius = 1, pathfind_flags = { cache = false, no_break = true }, can_open_gates = false, path_resolution_modifier = 0, entity_to_ignore = turret }
 end
 
 ---@param eventData EventData.on_script_path_request_finished

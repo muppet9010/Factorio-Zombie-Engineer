@@ -1,5 +1,6 @@
 local TableUtils = require('utility.helper-utils.table-utils')
 local Constants = require('constants')
+local CollisionMaskUtil = require("__core__/lualib/collision-mask-util")
 
 local characterPrototypeReference = data.raw["character"]["character"]
 
@@ -15,7 +16,7 @@ end
 ---@type data.UnitPrototype
 local zombieEngineer = {
     type = "unit",
-    name = "Zombie_Engineer-zombie_engineer",
+    name = "zombie_engineer-zombie_engineer",
     icon = "__core__/graphics/icons/entity/character.png",
     icon_size = 64,
     icon_mipmaps = 4,
