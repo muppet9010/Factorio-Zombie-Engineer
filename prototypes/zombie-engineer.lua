@@ -1,4 +1,5 @@
 local TableUtils = require('utility.helper-utils.table-utils')
+local Constants = require('constants')
 
 local characterPrototypeReference = data.raw["character"]["character"]
 

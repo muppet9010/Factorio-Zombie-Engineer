@@ -325,19 +325,23 @@ end
 --- Draw a path with options to label the 2 ends.
 ---@param path PathfinderWaypoint[]
 ---@param surface LuaSurface
----@param lineColor Color
+---@param unobstructedLineColor? Color
+---@param mustDestroyLineColor? Color
 ---@param startLabel? string
 ---@param endLabel? string
 ---@return uint64[] renderIds
-LoggingUtils.DrawPath = function(path, surface, lineColor, startLabel, endLabel)
+LoggingUtils.DrawPath = function(path, surface, unobstructedLineColor, mustDestroyLineColor, startLabel, endLabel)
     local renderIds = {} ---@type uint64[]
     local lastPoint ---@type MapPosition?
+    local lineColor ---@type Color
+    unobstructedLineColor = unobstructedLineColor or Colors.green
+    mustDestroyLineColor = mustDestroyLineColor or Colors.red
     if startLabel ~= nil then
         renderIds[#renderIds + 1] = rendering.draw_text {
             text = startLabel,
             surface = surface,
             target = path[1].position,
-            color = lineColor,
+            color = unobstructedLineColor,
             scale_with_zoom = true,
             alignment = "center",
             vertical_alignment = "middle"
@@ -345,6 +349,11 @@ LoggingUtils.DrawPath = function(path, surface, lineColor, startLabel, endLabel)
     end
     for _, waypoint in pairs(path) do
         if lastPoint ~= nil then
+            if not waypoint.needs_destroy_to_reach then
+                lineColor = unobstructedLineColor
+            else
+                lineColor = mustDestroyLineColor
+            end
             renderIds[#renderIds + 1] = rendering.draw_line({
                 color = lineColor,
                 width = 4.0,
@@ -361,7 +370,7 @@ LoggingUtils.DrawPath = function(path, surface, lineColor, startLabel, endLabel)
             text = endLabel,
             surface = surface,
             target = path[#path].position,
-            color = lineColor,
+            color = unobstructedLineColor,
             scale_with_zoom = true,
             alignment = "center",
             vertical_alignment = "middle"
