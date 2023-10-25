@@ -6,12 +6,13 @@ local EventScheduler = require("utility.manager-libraries.event-scheduler")
 ---@class ZombieEngineer
 ---@field id uint
 ---@field state ZombieEngineer_State
----@field entity LuaEntity
+---@field entity? LuaEntity
 ---@field surface LuaSurface
 ---@field sourceName string
 ---@field sourcePlayer? LuaPlayer
 ---@field inventory LuaInventory
 ---@field objective ZombieEngineer_Objective
+---@field action ZombieEngineer_Action
 ---@field distractionTarget? LuaEntity
 ---@field pathBlockingTarget? LuaEntity
 
@@ -25,6 +26,13 @@ local ZOMBIE_ENGINEER_STATE = {
 local ZOMBIE_ENGINEER_OBJECTIVE = {
     movingToSpawn = "movingToSpawn",
     rampagingSpawn = "rampagingSpawn"
+}
+
+---@enum ZombieEngineer_Action
+local ZOMBIE_ENGINEER_ACTION = {
+    idle = "idle",
+    movingToPathBlockingTarget = "movingToPathBlockingTarget",
+    chasingDistraction = "chasingDistraction"
 }
 
 local ZombieEngineerManager = {} ---@class Class_ZombieEngineerManager
@@ -95,6 +103,7 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, 
     zombieEngineer.surface = surface
     zombieEngineer.state = ZOMBIE_ENGINEER_STATE.alive
     zombieEngineer.objective = ZOMBIE_ENGINEER_OBJECTIVE.movingToSpawn
+    zombieEngineer.action = ZOMBIE_ENGINEER_ACTION.idle
 
     -- Find this player's current corpse if one specified and exists, then take the items from it.
     if player ~= nil and corpsePosition ~= nil then
@@ -131,9 +140,6 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, 
     zombieEngineer.id = global.ZombieEngineerManager.currentId + 1
     global.ZombieEngineerManager.currentId = global.ZombieEngineerManager.currentId + 1
     global.ZombieEngineerManager.zombieEngineers[zombieEngineer.id] = zombieEngineer
-
-    --TODO: testing
-    ZombieEngineerManager.Test_FindPath(zombieEngineer)
 
     return zombieEngineer
 end
@@ -192,6 +198,9 @@ end
 ---@param zombieEngineer ZombieEngineer
 ---@param currentTick uint
 ZombieEngineerManager.ManageZombieEngineer = function(zombieEngineer, currentTick)
+    --TODO: testing
+    ZombieEngineerManager.Test_FindPath(zombieEngineer)
+
     if not ZombieEngineerManager.ValidateZombie(zombieEngineer) then
         return
     end
@@ -243,6 +252,7 @@ ZombieEngineerManager.ValidateZombie = function(zombieEngineer)
     -- Invalid Zombie.
     LoggingUtils.PrintError("Zombie number '" .. zombieEngineer.id .. "' raised from '" .. zombieEngineer.sourceName "' failed validation and so has been cancelled")
     zombieEngineer.state = ZOMBIE_ENGINEER_STATE.dead
+    zombieEngineer.entity = nil
     return false
 end
 
