@@ -9,4 +9,14 @@ When the engineer dies, their corpse rises again and it's not happy!
 Features
 -----------
 
-Actual features of the mod.
+- When a player dies their corpse rises again as a zombie with all of the players equipment.
+- The zombie is a slow moving, strong enemy that attacks in melee.
+- Zombies won't be attacked by the players defences or weapons automatically. The player must specifically target the zombie and shoot it (C).AI picture recognition may have a flaw after all as they can't distinguish the zombie from the player.
+- There are optional graves (mod setting) that can be added to the map that when destroyed will release a zombie.
+
+
+
+Credits
+---------
+
+- Thanks to Rubble for all graphics used in the mod.

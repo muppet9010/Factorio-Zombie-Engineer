@@ -9,9 +9,8 @@ Required
 - A zombie should path towards its target smashing through anything in its direct way. The configurable options per pathfinder request are restricted within Factorio (to avoid affecting default biters). I believe doing a pathfinder request with a special entity that ignores entities should give the desired result path steps. We can then find the first target entity in the path and give our unit this as a target. The aim is to not slalom around buildings which the Factorio pathfinder will do by default.
 + A zombie should either be immune to belts. Alternative would be to view them as a blocking entity and destroy them.
 + A zombie should not be targeted by base defences or any automated fighting which isn't under player control, e.g. combat bots, spidertrons. A player will have to force shoot at the zombie, ideal for when they are in the base ^^
-- Randomly add graves to the map. When mined/destroyed these will create zombies. Graphics from Rubble. Do as an entity type that supports variations so JD-Plays mod can add custom images to it.
-- Make gravestones be auto added to the map. Ideally use noise like rocks so its got a game slider.
-- Make gravestones spawn a zombie when mined/destroyed.
++ Make gravestones be auto added to the map. Frequency controlled via mod setting just like Biter Eggs mod is.
++ Make gravestones spawn a zombie when mined/destroyed.
 
 
 Nice To Have
@@ -35,6 +34,7 @@ Nice To Have
     - Probability of gravestone spawning a zombie.
 - When a player kills a zombie, add an announcement that they have put the source player to rest. Also track how many zombies each player has killed internally (use o this is a future thing).
 - Zombie should be immune to poison and static discharge defence.
+- When a zombie arises from a killed player or a gravestone have some graphical niceties.
 
 
 Unknowns / Undecided

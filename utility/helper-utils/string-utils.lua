@@ -190,7 +190,7 @@ StringUtils.DisplayTimeOfTicks = function(inputTicks, displayLargestTimeUnit, di
     end
 end
 
---- Separates out the number and unit from when they combined in a single string, i.e. 5Kwh
+--- Separates out the number and unit from when they combined in a single string, i.e. 5KW
 ---@param text string
 ---@return double number
 ---@return string unit

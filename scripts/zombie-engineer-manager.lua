@@ -8,7 +8,8 @@ local EventScheduler = require("utility.manager-libraries.event-scheduler")
 ---@field state ZombieEngineer_State
 ---@field entity LuaEntity
 ---@field surface LuaSurface
----@field sourcePlayer LuaPlayer
+---@field sourceName string
+---@field sourcePlayer? LuaPlayer
 ---@field inventory LuaInventory
 ---@field objective ZombieEngineer_Objective
 ---@field distractionTarget? LuaEntity
@@ -40,6 +41,8 @@ end
 ZombieEngineerManager.OnLoad = function()
     Events.RegisterHandlerEvent(defines.events.on_player_died, "ZombieEngineerManager.OnPlayerDied", ZombieEngineerManager.OnPlayerDied)
 
+    Events.RegisterHandlerEvent(defines.events.on_entity_died, "ZombieEngineerManager.OnEntityDiedGravestone", ZombieEngineerManager.OnEntityDiedGravestone, { { filter = "name", name = "zombie_engineer-grave_with_headstone" } })
+
     --TODO: TESTING
     Events.RegisterHandlerEvent(defines.events.on_script_path_request_finished, "ZombieEngineerManager.Test_OnScriptPathRequestFinished", ZombieEngineerManager.Test_OnScriptPathRequestFinished)
 end
@@ -67,26 +70,34 @@ ZombieEngineerManager.OnPlayerDied = function(eventData)
         return
     end
 
-    ZombieEngineerManager.CreateZombie(player, eventData.player_index, character.surface, character.position, character.position)
+    ZombieEngineerManager.CreateZombie(player, eventData.player_index, player.name, character.surface, character.position, character.position)
 end
 
----@param player LuaPlayer
----@param player_index uint
+---@param eventData EventData.on_entity_died
+ZombieEngineerManager.OnEntityDiedGravestone = function(eventData)
+    local diedEntity = eventData.entity
+    ZombieEngineerManager.CreateZombie(nil, nil, "gravestone", diedEntity.surface, diedEntity.position, diedEntity.position)
+end
+
+---@param player? LuaPlayer
+---@param player_index? uint
+---@param sourceName string
 ---@param surface LuaSurface
 ---@param corpsePosition MapPosition
 ---@param zombiePosition MapPosition
 ---@return ZombieEngineer?
-ZombieEngineerManager.CreateZombie = function(player, player_index, surface, corpsePosition, zombiePosition)
+ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, surface, corpsePosition, zombiePosition)
     local currentTick = game.tick
 
     local zombieEngineer = {} ---@class ZombieEngineer
     zombieEngineer.sourcePlayer = player
+    zombieEngineer.sourceName = sourceName
     zombieEngineer.surface = surface
     zombieEngineer.state = ZOMBIE_ENGINEER_STATE.alive
     zombieEngineer.objective = ZOMBIE_ENGINEER_OBJECTIVE.movingToSpawn
 
     -- Find this player's current corpse if one specified and exists, then take the items from it.
-    if corpsePosition ~= nil then
+    if player ~= nil and corpsePosition ~= nil then
         local characterCorpsesNearBy = surface.find_entities_filtered({ position = corpsePosition, radius = 5, type = "character-corpse" })
         local characterCorpse ---@type LuaEntity
         for _, corpse in pairs(characterCorpsesNearBy) do
@@ -96,7 +107,7 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, surface, cor
             end
         end
         if characterCorpse == nil then
-            LoggingUtils.PrintError("Failed to find character corpse for '" .. player.name .. "' at: " .. LoggingUtils.MakeGpsRichText(corpsePosition.x, corpsePosition.y, surface.name))
+            LoggingUtils.PrintError("Failed to find character corpse for '" .. sourceName .. "' at: " .. LoggingUtils.MakeGpsRichText(corpsePosition.x, corpsePosition.y, surface.name))
         else
             zombieEngineer.inventory = InventoryUtils.TransferInventoryContentsToScriptInventory(characterCorpse.get_inventory(defines.inventory.character_corpse) --[[@as LuaInventory]], nil)
         end
@@ -105,13 +116,13 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, surface, cor
     -- Create the zombie entity.
     local zombieCreatePosition = surface.find_non_colliding_position("zombie_engineer-zombie_engineer", zombiePosition, 10, 0.1, false)
     if zombieCreatePosition == nil then
-        LoggingUtils.PrintError("Failed to find somewhere to create zombie engineer for '" .. player.name .. "' near: " .. LoggingUtils.MakeGpsRichText(zombiePosition.x, zombiePosition.y, surface.name))
+        LoggingUtils.PrintError("Failed to find somewhere to create zombie engineer for '" .. sourceName .. "' near: " .. LoggingUtils.MakeGpsRichText(zombiePosition.x, zombiePosition.y, surface.name))
         return nil
     end
     ---@diagnostic disable-next-line: missing-fields # Temporary work around until Factorio docs and FMTK updated to allow per type field specification.
     zombieEngineerEntity = surface.create_entity({ name = "zombie_engineer-zombie_engineer", position = zombieCreatePosition, direction = math.random(0, 7), force = global.ZombieEngineerManager.zombieForce })
     if zombieEngineerEntity == nil then
-        LoggingUtils.PrintError("Failed to create zombie engineer for '" .. player.name .. "' at: " .. LoggingUtils.MakeGpsRichText(zombieCreatePosition.x, zombieCreatePosition.y, surface.name))
+        LoggingUtils.PrintError("Failed to create zombie engineer for '" .. sourceName .. "' at: " .. LoggingUtils.MakeGpsRichText(zombieCreatePosition.x, zombieCreatePosition.y, surface.name))
         return nil
     end
     zombieEngineer.entity = zombieEngineerEntity
@@ -227,17 +238,12 @@ ZombieEngineerManager.ValidateZombie = function(zombieEngineer)
 
     if zombieValidated then
         return true
-    else
-        local sourcePlayer_name ---@type string
-        if zombieEngineer.sourcePlayer ~= nil and zombieEngineer.sourcePlayer.valid then
-            playerName = zombieEngineer.sourcePlayer.name
-        else
-            playerName = "A MISSING PLAYER?"
-        end
-        LoggingUtils.PrintError("Zombie number '" .. zombieEngineer.id .. "' raised from '" .. sourcePlayer_name "' failed validation and so has been cancelled")
-        zombieEngineer.state = ZOMBIE_ENGINEER_STATE.dead
-        return false
     end
+
+    -- Invalid Zombie.
+    LoggingUtils.PrintError("Zombie number '" .. zombieEngineer.id .. "' raised from '" .. zombieEngineer.sourceName "' failed validation and so has been cancelled")
+    zombieEngineer.state = ZOMBIE_ENGINEER_STATE.dead
+    return false
 end
 
 ---@param zombieEngineer ZombieEngineer
