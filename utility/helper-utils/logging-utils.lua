@@ -42,6 +42,13 @@ LoggingUtils.MakeGpsRichText = function(x, y, surfaceName)
     end
 end
 
+--- Make a GPS text string for use with an in-game message.
+---@param entity LuaEntity
+---@return string
+LoggingUtils.MakeGpsRichText_Entity = function(entity)
+    return "[gps=" .. entity.position.x .. "," .. entity.position.y .. "," .. entity.surface.name .. "]"
+end
+
 --- Write an error colored text string to the screen (if possible) with the mod name included.
 --- If in data stage can't print to screen. Also when in game during tick 0 can't print to screen. Either use the EventScheduler.GamePrint to do this or handle it another way at usage time.
 ---@param text string
