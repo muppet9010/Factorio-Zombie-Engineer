@@ -3,6 +3,7 @@ local InventoryUtils = require("utility.helper-utils.inventory-utils")
 local LoggingUtils = require("utility.helper-utils.logging-utils")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local PositionUtils = require("utility.helper-utils.position-utils")
+local Colors = require("utility.lists.colors")
 
 ---@class ZombieEngineer
 ---@field id uint
@@ -16,6 +17,18 @@ local PositionUtils = require("utility.helper-utils.position-utils")
 ---@field action ZombieEngineer_Action
 ---@field distractionTarget? LuaEntity
 ---@field pathBlockingTarget? LuaEntity
+---@field path? PathfinderWaypoint[]
+---@field attackingNodeInPath uint
+---@field debug_pathWaypointRenderIds? uint64[]
+---@field debug_attackCommandRenderId? uint64
+
+---@class ZombieEngineer_PathRequestDetails
+---@field pathRequestId uint
+---@field zombieEngineer ZombieEngineer
+---@field sourcePosition MapPosition
+---@field targetEntity? LuaEntity
+---@field targetPosition MapPosition
+---@field pathPurpose ZombieEngineer_PathfinderPurpose
 
 ---@enum ZombieEngineer_State
 local ZOMBIE_ENGINEER_STATE = {
@@ -37,6 +50,13 @@ local ZOMBIE_ENGINEER_ACTION = {
     chasingDistraction = "chasingDistraction"
 }
 
+---@enum ZombieEngineer_PathfinderPurpose
+local ZOMBIE_ENGINEER_PATHFINDER_PURPOSE = {
+    distraction = "distraction",
+    pathBlocking = "pathBlocking",
+    pathToSpawn = "pathToSpawn"
+}
+
 local ZombieEngineerManager = {} ---@class Class_ZombieEngineerManager
 
 ZombieEngineerManager.CreateGlobals = function()
@@ -46,8 +66,9 @@ ZombieEngineerManager.CreateGlobals = function()
 
     global.ZombieEngineerManager.zombieForce = global.ZombieEngineerManager.zombieForce ---@type LuaForce # Created as part of OnStartup if required.
     global.ZombieEngineerManager.zombiePathingCollisionMask = global.ZombieEngineerManager.zombiePathingCollisionMask ---@type data.CollisionMask # Obtained as part of OnStartup if required.
+    global.ZombieEngineerManager.zombieEntityCollisionMask = global.ZombieEngineerManager.zombieEntityCollisionMask ---@type data.CollisionMask # Obtained as part of OnStartup if required.
     global.ZombieEngineerManager.playerForces = global.ZombieEngineerManager.playerForces ---@type LuaForce[]
-    global.ZombieEngineerManager.requestedPaths = global.ZombieEngineerManager.requestedPaths or {} ---@type table<uint, ZombieEngineer> # Key'd by the path request ID.
+    global.ZombieEngineerManager.requestedPaths = global.ZombieEngineerManager.requestedPaths or {} ---@type table<uint, ZombieEngineer_PathRequestDetails> # Key'd by the path request ID.
 
     global.ZombieEngineerManager.Settings = {
         distractionRange = 50, -- Longer than a rocket launcher.
@@ -66,6 +87,9 @@ ZombieEngineerManager.OnStartup = function()
     end
     if global.ZombieEngineerManager.zombiePathingCollisionMask == nil then
         global.ZombieEngineerManager.zombiePathingCollisionMask = game.entity_prototypes["zombie_engineer-zombie_engineer_path_collision_layer"].collision_mask
+    end
+    if global.ZombieEngineerManager.zombieEntityCollisionMask == nil then
+        global.ZombieEngineerManager.zombieEntityCollisionMask = game.entity_prototypes["zombie_engineer-zombie_engineer"].collision_mask
     end
     global.ZombieEngineerManager.playerForces = { game.forces["player"] } -- We might want to add support for more in future, so why not variable it now.
 end
@@ -160,8 +184,9 @@ ZombieEngineerManager.CreateZombieForce = function()
     biterForce.set_friend(zombieForce, true)
 
     -- Make the Player be cease fire with the zombie.
-    local playerForce = game.forces["player"]
-    playerForce.set_cease_fire(zombieForce, true)
+    for _, playerForce in pairs(global.ZombieEngineerManager.playerForces) do
+        playerForce.set_cease_fire(zombieForce, true)
+    end
 
     -- Set the zombie color as a dark brown.
     zombieForce.custom_color = { r = 0.100, g = 0.040, b = 0.0, a = 0.7 }
@@ -187,38 +212,39 @@ ZombieEngineerManager.ManageZombieEngineer = function(zombieEngineer, currentTic
         return
     end
 
-    -- TODO: clear targets when others are set.
-    -- TODO: this logic isn't completely fleshed out.
+
     local zombieCurrentPosition = zombieEngineer.entity.position
 
-    -- TODO: if we have a path to something and its moved, then we ned to get a new path. As We might need to attack something new on the way.
+    -- TODO: if we have a path to something and its moved, then we need to get a new path. As We might need to attack something new in the way. Check the targets position and our distance from it. So just update path if its moved significantly. Keep on moving on the old path until the new path request returns.
     if zombieEngineer.distractionTarget ~= nil then
         ZombieEngineerManager.ValidateDistractionTarget(zombieEngineer, zombieCurrentPosition)
     end
     if zombieEngineer.distractionTarget == nil then
         ZombieEngineerManager.FindDistractionTarget(zombieEngineer, zombieCurrentPosition)
     end
-
     if zombieEngineer.distractionTarget ~= nil then
-        ZombieEngineerManager.AttackTowardsDistractionTarget(zombieEngineer)
-    else
-        if zombieEngineer.objective == ZOMBIE_ENGINEER_OBJECTIVE.rampagingSpawn then
-            if zombieEngineer.pathBlockingTarget ~= nil then
-                ZombieEngineerManager.ValidatePathBlockingTarget(zombieEngineer)
-            end
-            if zombieEngineer.pathBlockingTarget == nil then
-                ZombieEngineerManager.FindRampageTarget(zombieEngineer)
-            end
-            if zombieEngineer.pathBlockingTarget ~= nil then
-                ZombieEngineerManager.AttackPathBlockingTarget(zombieEngineer)
-            end
-        elseif zombieEngineer.objective == ZOMBIE_ENGINEER_OBJECTIVE.movingToSpawn then
-            --TODO
-        else
-            LoggingUtils.PrintError("Zombie is in un-recognised state '" .. zombieEngineer.state .. "' here: " .. LoggingUtils.MakeGpsRichText_Entity(zombieEngineer.entity))
-            if global.debugSettings.testing then error("Zombie is in un-recognised state") end
-            return
+        ZombieEngineerManager.AttackTowardsDistractionTarget(zombieEngineer, zombieCurrentPosition)
+        return
+    end
+
+    -- TODO: clear targets when others are set.
+    -- TODO: this logic isn't completely fleshed out.
+    if zombieEngineer.objective == ZOMBIE_ENGINEER_OBJECTIVE.rampagingSpawn then
+        if zombieEngineer.pathBlockingTarget ~= nil then
+            ZombieEngineerManager.ValidatePathBlockingTarget(zombieEngineer)
         end
+        if zombieEngineer.pathBlockingTarget == nil then
+            ZombieEngineerManager.FindRampageTarget(zombieEngineer)
+        end
+        if zombieEngineer.pathBlockingTarget ~= nil then
+            ZombieEngineerManager.AttackPathBlockingTarget(zombieEngineer)
+        end
+    elseif zombieEngineer.objective == ZOMBIE_ENGINEER_OBJECTIVE.movingToSpawn then
+        --TODO
+    else
+        LoggingUtils.PrintError("Zombie is in un-recognised state '" .. zombieEngineer.state .. "' here: " .. LoggingUtils.MakeGpsRichText_Entity(zombieEngineer.entity))
+        if global.debugSettings.testing then error("Zombie is in un-recognised state") end
+        return
     end
 end
 
@@ -236,29 +262,36 @@ ZombieEngineerManager.ValidateZombie = function(zombieEngineer)
     end
 
     -- Invalid Zombie.
-    LoggingUtils.PrintError("Zombie number '" .. zombieEngineer.id .. "' raised from '" .. zombieEngineer.sourceName "' failed validation and so has been cancelled")
+    LoggingUtils.PrintError("Zombie number '" .. zombieEngineer.id .. "' raised from '" .. zombieEngineer.sourceName .. "' failed validation and so has been cancelled")
     if global.debugSettings.testing then error("Zombie failed validation") end
     zombieEngineer.state = ZOMBIE_ENGINEER_STATE.dead
     zombieEngineer.entity = nil
     return false
 end
 
+-- We have a distraction target already, is it still valid?
 ---@param zombieEngineer ZombieEngineer
 ---@param zombieCurrentPosition MapPosition
 ZombieEngineerManager.ValidateDistractionTarget = function(zombieEngineer, zombieCurrentPosition)
+    -- zombieEngineer.distractionTarget is not nil if this function run.
+
     --TODO: we only need to check this every second or two.
 
     if not zombieEngineer.distractionTarget.valid then
         zombieEngineer.distractionTarget = nil
+        zombieEngineer.action = ZOMBIE_ENGINEER_ACTION.idle
         return
     end
 
     if PositionUtils.GetDistance(zombieCurrentPosition, zombieEngineer.distractionTarget.position) > global.ZombieEngineerManager.Settings.distractionRange then
         zombieEngineer.distractionTarget = nil
+        zombieEngineer.action = ZOMBIE_ENGINEER_ACTION.idle
+        zombieEngineer.path = nil
         return
     end
 end
 
+-- We don't have a distraction target so see if we can find one.
 ---@param zombieEngineer ZombieEngineer
 ---@param zombieCurrentPosition MapPosition
 ZombieEngineerManager.FindDistractionTarget = function(zombieEngineer, zombieCurrentPosition)
@@ -267,7 +300,7 @@ ZombieEngineerManager.FindDistractionTarget = function(zombieEngineer, zombieCur
     local nearestTargetEntity, nearestTargetDistance ---@type LuaEntity, double
     local thisDistance ---@type double
 
-    local nearbyCharacter = zombieEngineer.surface.find_entities_filtered({ type = "character", position = zombieEngineer.entity.position, radius = global.ZombieEngineerManager.Settings.distractionRange, force = global.ZombieEngineerManager.playerForces })
+    local nearbyCharacter = zombieEngineer.surface.find_entities_filtered({ type = "character", position = zombieCurrentPosition, radius = global.ZombieEngineerManager.Settings.distractionRange, force = global.ZombieEngineerManager.playerForces })
     for _, characterEntity in pairs(nearbyCharacter) do
         thisDistance = PositionUtils.GetDistance(zombieCurrentPosition, characterEntity.position)
         if nearestTargetDistance == nil or thisDistance < nearestTargetDistance then
@@ -276,7 +309,7 @@ ZombieEngineerManager.FindDistractionTarget = function(zombieEngineer, zombieCur
         end
     end
 
-    local nearbyVehicles = zombieEngineer.surface.find_entities_filtered({ type = { "car", "spider-vehicle" }, position = zombieEngineer.entity.position, radius = global.ZombieEngineerManager.Settings.distractionRange, force = global.ZombieEngineerManager.playerForces })
+    local nearbyVehicles = zombieEngineer.surface.find_entities_filtered({ type = { "car", "spider-vehicle" }, position = zombieCurrentPosition, radius = global.ZombieEngineerManager.Settings.distractionRange, force = global.ZombieEngineerManager.playerForces })
     for _, vehicleEntity in pairs(nearbyVehicles) do
         if vehicleEntity.get_driver() ~= nil or vehicleEntity.get_passenger() ~= nil then
             thisDistance = PositionUtils.GetDistance(zombieCurrentPosition, vehicleEntity.position)
@@ -289,75 +322,168 @@ ZombieEngineerManager.FindDistractionTarget = function(zombieEngineer, zombieCur
 
     if nearestTargetEntity ~= nil then
         zombieEngineer.distractionTarget = nearestTargetEntity
+        zombieEngineer.action = ZOMBIE_ENGINEER_ACTION.idle
+        zombieEngineer.pathBlockingTarget = nil
     end
 end
 
 ---@param zombieEngineer ZombieEngineer
-ZombieEngineerManager.AttackTowardsDistractionTarget = function(zombieEngineer)
+---@param zombieCurrentPosition MapPosition
+ZombieEngineerManager.AttackTowardsDistractionTarget = function(zombieEngineer, zombieCurrentPosition)
     -- zombieEngineer.distractionTarget is not nil if this function was reached.
+
     if zombieEngineer.action == ZOMBIE_ENGINEER_ACTION.idle then
-        ZombieEngineerManager.FindPath(zombieEngineer, zombieEngineer.distractionTarget)
-        zombieEngineer.action = ZOMBIE_ENGINEER_ACTION.findingPath
+        ZombieEngineerManager.RequestPath(zombieEngineer, zombieEngineer.distractionTarget, zombieEngineer.distractionTarget.position, zombieCurrentPosition, ZOMBIE_ENGINEER_PATHFINDER_PURPOSE.distraction)
         return
     end
 
-    --TODO: if we have a path.
+    if zombieEngineer.action == ZOMBIE_ENGINEER_ACTION.findingPath then
+        return
+    end
+
+    if zombieEngineer.action == ZOMBIE_ENGINEER_ACTION.chasingDistraction then
+        -- We have a path here and are doing commands to follow it.
+        if zombieEngineer.entity.command.type == defines.command.wander then
+            local reachedEndOfPath = ZombieEngineerManager.AttackCommandToNextTargetInPath(zombieEngineer)
+            if not reachedEndOfPath then
+                return
+            end
+
+            if PositionUtils.GetDistance(zombieCurrentPosition, zombieEngineer.distractionTarget.position) < 3 then
+                ZombieEngineerManager.SetAttackCommandOnTarget(zombieEngineer, zombieEngineer.distractionTarget)
+            else
+                error("not handled the target moving yet")
+            end
+        end
+        return
+    end
+
+    LoggingUtils.PrintError("Zombie is in un-recognised action '" .. zombieEngineer.action .. "' while attacking towards spawn, here: " .. LoggingUtils.MakeGpsRichText_Entity(zombieEngineer.entity))
+    if global.debugSettings.testing then error("Zombie is in un-recognised action") end
 end
 
 ---@param zombieEngineer ZombieEngineer
 ZombieEngineerManager.ValidatePathBlockingTarget = function(zombieEngineer)
-    --TODO
 end
 
 ---@param zombieEngineer ZombieEngineer
 ZombieEngineerManager.FindRampageTarget = function(zombieEngineer)
-    --TODO
 end
 
 ---@param zombieEngineer ZombieEngineer
 ZombieEngineerManager.AttackPathBlockingTarget = function(zombieEngineer)
-    --TODO
 end
 
+--- Get a path that ignores all player entities using a custom collision mask on everything with player-layer other than player buildable entities. Will also avoid water.
+--- We'd then have to check for all entities collision boxes on this path and target the first one.
 ---@param zombieEngineer ZombieEngineer
 ---@param targetEntity? LuaEntity
----@param targetPosition? MapPosition
-ZombieEngineerManager.FindPath = function(zombieEngineer, targetEntity, targetPosition)
-    if targetEntity == nil and targetPosition == nil then
-        LoggingUtils.PrintError("Zombie needs a target to find a path, zombie here: '" .. LoggingUtils.MakeGpsRichText_Entity(zombieEngineer.entity))
-        if global.debugSettings.testing then error("FindPath needs target entity or position") end
-        return
-    end
-    if targetEntity ~= nil then
-        targetPosition = targetEntity.position
-    end ---@cast targetPosition -nil
-
-    -- TODO: OLD NOTES
-    -- Another way is to get a path that ignores all player entities using a custom collision mask on everything with player-layer other than player buildable entities. Will also avoid water. As we are only adding it to some of the things with player-layer we wouldn't be expanding the overlap in collision masks, so this won't break anything.
-    -- This concept here just uses the resource-layer, as his ignores entities, but respects water. However, we also want to avoid biter bases and worms, plus probably trees and rocks? So maybe more of an explicitly inclusive thing.
-    -- We'd then have to check for all entities collision boxes on this path and target the first one.
-
-    local pathRequestId = zombieEngineer.surface.request_path({ bounding_box = { { -0.5, -0.5 }, { 0.5, 0.5 } }, collision_mask = global.ZombieEngineerManager.zombiePathingCollisionMask, start = zombieEngineer.entity.position, goal = targetPosition, force = zombieEngineer.entity.force, radius = 1, pathfind_flags = { cache = false, no_break = true }, can_open_gates = false, path_resolution_modifier = 0, entity_to_ignore = targetEntity })
-    global.ZombieEngineerManager.requestedPaths[pathRequestId] = zombieEngineer
+---@param targetPosition MapPosition
+---@param zombieCurrentPosition MapPosition
+---@param pathPurpose ZombieEngineer_PathfinderPurpose
+ZombieEngineerManager.RequestPath = function(zombieEngineer, targetEntity, targetPosition, zombieCurrentPosition, pathPurpose)
+    local pathRequestId = zombieEngineer.surface.request_path({ bounding_box = { { -0.5, -0.5 }, { 0.5, 0.5 } }, collision_mask = global.ZombieEngineerManager.zombiePathingCollisionMask, start = zombieCurrentPosition, goal = targetPosition, force = global.ZombieEngineerManager.zombieForce, radius = 1, pathfind_flags = { cache = false, no_break = true }, can_open_gates = false, path_resolution_modifier = 0, entity_to_ignore = targetEntity })
+    global.ZombieEngineerManager.requestedPaths[pathRequestId] = { pathRequestId = pathRequestId, zombieEngineer = zombieEngineer, sourcePosition = zombieCurrentPosition, targetEntity = targetEntity, targetPosition = targetPosition, pathPurpose = pathPurpose }
+    zombieEngineer.action = ZOMBIE_ENGINEER_ACTION.findingPath
 end
 
 ---@param eventData EventData.on_script_path_request_finished
 ZombieEngineerManager.OnScriptPathRequestFinished = function(eventData)
-    -- TODO: handle eventData.try_again_later
+    local pathRequestId = eventData.id
+    local pathRequestDetails = global.ZombieEngineerManager.requestedPaths[pathRequestId]
+    if pathRequestDetails == nil then
+        return
+    end
+    local zombieEngineer = pathRequestDetails.zombieEngineer
+    global.ZombieEngineerManager.requestedPaths[pathRequestId] = nil
 
-    local zombieEngineer = global.ZombieEngineerManager.requestedPaths[eventData.id]
-    if zombieEngineer == nil then
+    if zombieEngineer.state == ZOMBIE_ENGINEER_STATE.dead then
         return
     end
 
+    if eventData.try_again_later then
+        -- Pathfinder was busy.
+        ZombieEngineerManager.RequestPathFailed(zombieEngineer, pathRequestDetails)
+        return
+    end
     local path = eventData.path
     if path == nil then
-        game.print("no path found")
+        -- No path was found between the 2 points.
+        ZombieEngineerManager.RequestPathFailed(zombieEngineer, pathRequestDetails)
         return
     end
-    LoggingUtils.DrawPath(path, game.surfaces[1], nil, nil, "start", "end")
 
-    -- TODO: Do something with the result back to the zombieEngineer
+    if global.debugSettings.testing then
+        if zombieEngineer.debug_pathWaypointRenderIds ~= nil then
+            for _, renderId in pairs(zombieEngineer.debug_pathWaypointRenderIds) do
+                rendering.destroy(renderId)
+            end
+        end
+        zombieEngineer.debug_pathWaypointRenderIds = LoggingUtils.DrawPath(path, game.surfaces[1], nil, nil, "start", "end")
+    end
+
+    -- Record the result if the purpose of the path is for the current most critical target the zombie has. If the path takes a few moments to get then target could have been replaced by something else since, or worst a higher priority target.
+    if pathRequestDetails.pathPurpose == ZOMBIE_ENGINEER_PATHFINDER_PURPOSE.distraction then
+        if pathRequestDetails.targetEntity == zombieEngineer.distractionTarget then
+            zombieEngineer.path = path
+            zombieEngineer.attackingNodeInPath = 1
+            zombieEngineer.action = ZOMBIE_ENGINEER_ACTION.chasingDistraction
+        else
+            -- Is a path to an old target so just ignore.
+        end
+        return
+    else
+        error("unhandled so far")
+    end
+end
+
+--- Handle the pathing request failing and update the zombie object's action so that the main state loop can retry/handle the next action from fresh.
+---@param zombieEngineer ZombieEngineer
+---@param pathRequestDetails ZombieEngineer_PathRequestDetails
+ZombieEngineerManager.RequestPathFailed = function(zombieEngineer, pathRequestDetails)
+    LoggingUtils.PrintError("Zombie failed to find a path from here: " .. LoggingUtils.MakeGpsRichText(pathRequestDetails.sourcePosition.x, pathRequestDetails.sourcePosition.y, zombieEngineer.surface.name) .. "   to the target that was here: " .. LoggingUtils.MakeGpsRichText(pathRequestDetails.targetPosition.x, pathRequestDetails.targetPosition.y, zombieEngineer.surface.name))
+    zombieEngineer.action = ZOMBIE_ENGINEER_ACTION.idle
+end
+
+---@param zombieEngineer ZombieEngineer
+---@return boolean reachedEndOfPath
+ZombieEngineerManager.AttackCommandToNextTargetInPath = function(zombieEngineer)
+    -- Look over waypoints to find next blocking target.
+    local pathWaypoint ---@type PathfinderWaypoint
+    for pathWaypoint_index = zombieEngineer.attackingNodeInPath, #zombieEngineer.path do
+        pathWaypoint = zombieEngineer.path[pathWaypoint_index]
+        local targets = zombieEngineer.surface.find_entities_filtered({ position = pathWaypoint.position, collision_mask = global.ZombieEngineerManager.zombieEntityCollisionMask, force = global.ZombieEngineerManager.playerForces, limit = 1 })
+        local target = targets[1]
+        if target ~= nil then
+            ZombieEngineerManager.SetAttackCommandOnTarget(zombieEngineer, target)
+            zombieEngineer.attackingNodeInPath = pathWaypoint_index
+            return false
+        end
+    end
+
+    -- Reached end of path
+    return true
+end
+
+---@param zombieEngineer ZombieEngineer
+---@param target LuaEntity|MapPosition
+---@param color Color
+---@return uint64 renderId
+ZombieEngineerManager.DebugDrawLineFromZombie = function(zombieEngineer, target, color)
+    return rendering.draw_line({ color = color, width = 4, from = zombieEngineer.entity, to = target, surface = zombieEngineer.surface })
+end
+
+---@param zombieEngineer ZombieEngineer
+---@param target LuaEntity
+ZombieEngineerManager.SetAttackCommandOnTarget = function(zombieEngineer, target)
+    if global.debugSettings.testing and zombieEngineer.debug_attackCommandRenderId ~= nil then
+        rendering.destroy(zombieEngineer.debug_attackCommandRenderId)
+    end
+    ---@diagnostic disable-next-line: missing-fields # Temporary work around until Factorio docs and FMTK updated to allow per type field specification.
+    zombieEngineer.entity.set_command({ type = defines.command.attack, target = target, distraction = defines.distraction.none })
+    if global.debugSettings.testing then
+        zombieEngineer.debug_attackCommandRenderId = ZombieEngineerManager.DebugDrawLineFromZombie(zombieEngineer, target, Colors.red)
+    end
 end
 
 return ZombieEngineerManager

@@ -68,6 +68,7 @@ local zombieEngineer = {
     run_animation = TableUtils.DeepCopy(characterPrototypeReference.animations[1].running), -- Copy the no armor animations.
     has_belt_immunity = true,
     affected_by_tiles = true,
+    ai_settings = { allow_try_return_to_spawner = false, destroy_when_commands_fail = false, do_separation = false }
 }
 
 data:extend({ zombieEngineer })
