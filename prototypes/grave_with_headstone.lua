@@ -42,7 +42,8 @@ local graveWithHeadstonePrototype = {
     vehicle_impact_sound = { filename = "__base__/sound/car-stone-impact.ogg", volume = 1.0 },
     render_layer = "object",
     pictures = {},
-    autoplace = MakeAutoplaceSettings(0.0075, "b[zombie_engineer-grave_with_headstone]") -- This is one tenth the frequency of biter eggs.
+    autoplace = MakeAutoplaceSettings(0.0075, "b[zombie_engineer-grave_with_headstone]"), -- This is one tenth the frequency of biter eggs.
+    corpse = "zombie_engineer-grave_with_headstone-corpse"
 }
 
 ---@diagnostic disable-next-line: missing-fields # Temporary work around until Factorio docs fix this API doc. Logged here: https://forums.factorio.com/viewtopic.php?f=233&t=109364
@@ -54,20 +55,6 @@ graveWithHeadstonePrototype.resistances = {
     }
 }
 
--- Make 8 graphic variations for future graphics.
--- This isn't the best way, but I don't know how to set random variations on an existing single picture prototype. TODO: find a better way in the future.
-for i = 1, 10 do
-    table.insert(graveWithHeadstonePrototype.pictures,
-        {
-            filename = Constants.AssetModName .. "/graphics/grave_with_headstone/The_man_with_no_name.png",
-            width = 140,
-            height = 181,
-            scale = 0.5,
-            shift = { 0.1, 0.3 }
-        } --[[@as data.Sprite ]]
-    )
-end
-
 ---@type data.NoiseLayer
 local graveWithHeadstoneNoiseLayerPrototype =
 {
@@ -75,5 +62,48 @@ local graveWithHeadstoneNoiseLayerPrototype =
     name = "enemy-zombie_engineer-grave_with_headstone"
 }
 
+---@type data.CorpsePrototype
+local graveWithHeadstoneCorpsePrototype = {
+    type = "corpse",
+    name = "zombie_engineer-grave_with_headstone-corpse",
+    flags = { "placeable-neutral", "placeable-off-grid", "not-on-map" },
+    icon = Constants.AssetModName .. "/graphics/grave_with_headstone/blank_headstone_grave-corpse-icon.png",
+    icon_size = 121,
+    collision_box = graveWithHeadstonePrototype.selection_box,
+    selection_box = graveWithHeadstonePrototype.selection_box,
+    selectable_in_game = false,
+    time_before_removed = 15 * 60 * 60, --same as spawners
+    subgroup = "corpses",
+    order = "c[corpse]-b[zombie_grave]",
+    final_render_layer = "remnants",
+    animation = {}
+}
 
-data:extend({ graveWithHeadstonePrototype, graveWithHeadstoneNoiseLayerPrototype })
+
+-- Make 10 graphic variations for future graphics.
+-- This isn't the best way, but I don't know how to set random variations on an existing single picture prototype. TODO: find a better way in the future.
+for i = 1, 10 do
+    table.insert(graveWithHeadstonePrototype.pictures,
+        {
+            filename = Constants.AssetModName .. "/graphics/grave_with_headstone/blank_headstone_grave.png",
+            width = 140,
+            height = 181,
+            scale = 0.5,
+            shift = { 0.1, 0.3 }
+        }
+    )
+    table.insert(graveWithHeadstoneCorpsePrototype.animation,
+        {
+            width = 140,
+            height = 181,
+            scale = 0.5,
+            shift = { 0.1, 0.3 },
+            frame_count = 1,
+            direction_count = 1,
+            filename = Constants.AssetModName .. "/graphics/grave_with_headstone/blank_headstone_grave-corpse.png"
+        }
+    )
+end
+
+
+data:extend({ graveWithHeadstonePrototype, graveWithHeadstoneNoiseLayerPrototype, graveWithHeadstoneCorpsePrototype })

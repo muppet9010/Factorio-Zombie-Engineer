@@ -38,6 +38,7 @@ Nice To Have
 - When a player kills a zombie, add an announcement that they have put the source player to rest. Also track how many zombies each player has killed internally (use o this is a future thing).
 - Zombie should be immune to poison and static discharge defence.
 - When a zombie arises from a killed player or a gravestone have some graphical niceties.
+- Add effects when a gravestone is destroyed.
 
 
 Unknowns / Undecided
@@ -46,6 +47,7 @@ Unknowns / Undecided
 - If a Zombie kills a player what should happen. Either a new zombie appears or we could heal/level up the victorious zombie.
 - If a zombie is unable to reach a player for too long it should attack nearest player buildings. Effectively you can't just kite one forever or bounce them between 2 players going in and out of detection range.
 - Should zombies have tougher versions that scale with evolution?
+- At present graves are only destroyable (like biter eggs), should they be minable instead?
 
 
 Future Ideas
