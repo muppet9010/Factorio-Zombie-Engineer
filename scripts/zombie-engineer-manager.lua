@@ -179,7 +179,7 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, 
         return nil
     end
     ---@diagnostic disable-next-line: missing-fields # Temporary work around until Factorio docs and FMTK updated to allow per type field specification.
-    zombieEngineerEntity = surface.create_entity({ name = "zombie_engineer-zombie_engineer", position = zombieCreatePosition, direction = math.random(0, 7), force = global.ZombieEngineerManager.zombieForce })
+    zombieEngineerEntity = surface.create_entity({ name = "zombie_engineer-zombie_engineer", position = zombieCreatePosition, direction = math.random(0, 7), force = "enemy" }) --TODO: force set to enemy so can be easily targetted in .
     if zombieEngineerEntity == nil then
         LoggingUtils.PrintError("Failed to create zombie engineer for '" .. sourceName .. "' at: " .. LoggingUtils.MakeGpsRichText(zombieCreatePosition.x, zombieCreatePosition.y, surface.name))
         return nil
@@ -547,7 +547,7 @@ ZombieEngineerManager.OnEntityDiedZombieEngineer = function(eventData)
             local corpseInventory = zombieCorpse.get_inventory(defines.inventory.character_corpse) ---@cast corpseInventory -nil
             InventoryUtils.TryMoveInventoriesLuaItemStacks(zombieEngineer.inventory, corpseInventory, true, 100)
         end
-        -- TODO: this works for player zombie, but not grave zombie.
+        -- TODO: this works for player zombie, but not grave zombie I believe.
         zombieCorpse.color = color
     end
 

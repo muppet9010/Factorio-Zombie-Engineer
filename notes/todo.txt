@@ -68,6 +68,7 @@ Future Code
 - Add a new utility to support scheduling nth tick events care free. So like event scheduler, where you can just add a function from a code module to be run at nth tick and not have to worry about other modules scheduling.
 - Make a helper function that runs a callback function against each layer in an animation/sprite. Should handle if there are layers or not. Abstracting this from the player. Would make us support modded character graphics better.
 - Review the LoggingUtils now as I think we have a lot of overlapping functions in there. This is a breaking changes utility version already in v1.0.0 of the Zombie mod.
+- Somehow the deploy script of this removes another JD mod.
 
 
 Rejected

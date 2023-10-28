@@ -24,7 +24,7 @@ local zombieEngineer = {
     max_health = 1000,
     order = "z-a-a",
     subgroup = "enemies",
-    healing_per_tick = 0.1,
+    healing_per_tick = 0.02, -- Same as big biter.
     collision_box = { { -0.2, -0.2 }, { 0.2, 0.2 } },
     selection_box = { { -0.4, -0.7 }, { 0.4, 0.4 } },
     damaged_trigger_effect = {
@@ -59,8 +59,8 @@ local zombieEngineer = {
         animation = meleeAttackAnimation,
         range_mode = "bounding-box-to-bounding-box"
     },
-    vision_distance = 30, -- Zombies won't ever auto target anything. -- TODO
-    movement_speed = 0.075, -- Upped to half player speed as it will have to path around stuff. - -TODO: reduce to 0.05 when zombie destroy pathing works.
+    vision_distance = 20, -- Zombies won't ever auto target anything. -- TODO
+    movement_speed = 0.05,
     distance_per_frame = characterPrototypeReference.distance_per_frame,
     pollution_to_join_attack = 0,
     distraction_cooldown = 0,
@@ -71,7 +71,8 @@ local zombieEngineer = {
 }
 
 ---@diagnostic disable: missing-fields # Temporary work around until Factorio docs fix this API doc. Logged here: https://forums.factorio.com/viewtopic.php?f=233&t=109364
-zombieEngineer.resistances =
+-- TODO: removed for start of the game.
+--[[zombieEngineer.resistances =
 {
     {
         type = "physical",
@@ -93,7 +94,7 @@ zombieEngineer.resistances =
         decrease = 0,
         percent = 30
     }
-}
+}]]
 ---@diagnostic enable: missing-fields
 
 
