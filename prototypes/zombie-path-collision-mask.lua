@@ -11,11 +11,12 @@ local TableUtils = require("utility.helper-utils.table-utils")
 
 local zombieEngineerPathCollisionLayer = CollisionMaskUtil.get_first_unused_layer() --[[@as data.CollisionMaskLayer]]
 
-data:extend({ {
+---@type data.SimpleEntityPrototype
+local zombieEngineerPathCollisionLayerPrototype = {
     name = "zombie_engineer-zombie_engineer_path_collision_layer",
     type = "simple-entity",
     collision_mask = { zombieEngineerPathCollisionLayer }
-} --[[@as data.SimpleEntityPrototype]] })
+}
 
 local function AddZombiePathLayerToPrototype(prototype)
     local newMask = CollisionMaskUtil.get_mask(prototype)
@@ -86,5 +87,10 @@ for _, prototype in pairs(data.raw["simple-entity-with-force"] --[[@as data.Simp
         AddZombiePathLayerToPrototype(prototype)
     end
 end
+
+
+
+
+data:extend({ zombieEngineerPathCollisionLayerPrototype })
 
 return zombieEngineerPathCollisionLayer

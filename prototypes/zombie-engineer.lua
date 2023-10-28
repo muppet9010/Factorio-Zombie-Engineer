@@ -21,10 +21,9 @@ local zombieEngineer = {
     icon_size = 64,
     icon_mipmaps = 4,
     flags = { "placeable-player", "placeable-enemy", "placeable-off-grid", "not-repairable", "breaths-air" },
-    max_health = 1000,
+    max_health = 100, --TODO
     order = "z-a-a",
     subgroup = "enemies",
-    resistances = nil,
     healing_per_tick = 0.1,
     collision_box = { { -0.2, -0.2 }, { 0.2, 0.2 } },
     selection_box = { { -0.4, -0.7 }, { 0.4, 0.4 } },
@@ -68,7 +67,34 @@ local zombieEngineer = {
     run_animation = TableUtils.DeepCopy(characterPrototypeReference.animations[1].running), -- Copy the no armor animations.
     has_belt_immunity = true,
     affected_by_tiles = true,
-    ai_settings = { allow_try_return_to_spawner = false, destroy_when_commands_fail = false, do_separation = false }
+    ai_settings = { allow_try_return_to_spawner = false, destroy_when_commands_fail = false, do_separation = false },
 }
+
+---@diagnostic disable: missing-fields # Temporary work around until Factorio docs fix this API doc. Logged here: https://forums.factorio.com/viewtopic.php?f=233&t=109364
+zombieEngineer.resistances =
+{
+    {
+        type = "physical",
+        decrease = 6,
+        percent = 30
+    },
+    {
+        type = "explosion",
+        decrease = 20,
+        percent = 30
+    },
+    {
+        type = "acid",
+        decrease = 0,
+        percent = 40
+    },
+    {
+        type = "fire",
+        decrease = 0,
+        percent = 30
+    }
+}
+---@diagnostic enable: missing-fields
+
 
 data:extend({ zombieEngineer })
