@@ -1,0 +1,34 @@
+{
+    "factorio.versions": [
+        {
+            "name": "Modding Current",
+            "factorioPath": "c:\\FactorioModding\\bin\\x64\\factorio.exe",
+            "active": true
+        }
+    ],
+    "Lua.workspace.library": [
+        "c:/Users/mikeh/AppData/Roaming/Code/User/workspaceStorage/34445a4340c7b2315555c5d263edbf99/justarandomgeek.factoriomod-debug/sumneko-3rd/factorio/library",
+        "c:\\FactorioModding\\data"
+    ],
+    "Lua.workspace.userThirdParty": [
+        "c:\\Users\\mikeh\\AppData\\Roaming\\Code\\User\\workspaceStorage\\34445a4340c7b2315555c5d263edbf99\\justarandomgeek.factoriomod-debug\\sumneko-3rd"
+    ],
+    "Lua.runtime.builtin": {
+        "io": "disable",
+        "os": "disable",
+        "math": "disable",
+        "debug": "disable",
+        "coroutine": "disable",
+        "package": "disable"
+    },
+    "Lua.diagnostics.globals": [
+        "__Profiler"
+    ],
+    "Lua.runtime.special": {
+        "__object_name": "type"
+    },
+    "Lua.diagnostics.disable": [
+        "lowercase-global"
+    ],
+    "Lua.runtime.plugin": "c:/Users/mikeh/AppData/Roaming/Code/User/workspaceStorage/34445a4340c7b2315555c5d263edbf99/justarandomgeek.factoriomod-debug/sumneko-3rd/factorio/plugin.lua"
+}
