@@ -218,6 +218,8 @@ end
 
 ---@param eventData NthTickEventData
 ZombieEngineerManager.ManageAllZombieEngineers = function(eventData)
+    if 1 == 1 then return end -- TODO: make it use biter pathing.
+
     local currentTick = eventData.tick
 
     for _, zombieEngineer in pairs(global.ZombieEngineerManager.zombieEngineers) do
