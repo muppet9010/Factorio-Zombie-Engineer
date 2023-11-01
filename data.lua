@@ -1,7 +1,7 @@
 MODDATA = MODDATA or {} ---@type table
 
-MODDATA.zombieEngineerPathCollisionLayer = require('prototypes.zombie-path-collision-mask') --TODO: we will need to pass this into our gravestones.
+require("data.prototypes.zombie-path-collision-mask")
 
-require('prototypes.zombie-engineer')
-
-require('prototypes.grave_with_headstone')
+require("data.prototypes.zombie-engineer")
+require("data.prototypes.grave_with_headstone")
+require("data.prototypes.zombie_trigger_target_mask")

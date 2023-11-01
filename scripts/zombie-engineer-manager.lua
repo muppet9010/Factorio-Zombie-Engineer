@@ -6,6 +6,11 @@ local PositionUtils = require("utility.helper-utils.position-utils")
 local Colors = require("utility.lists.colors")
 local DirectionUtils = require("utility.helper-utils.direction-utils")
 
+---@class ZombieEngineer_TestingSettings
+local TestingSettings = {
+    giveZombieItems = false
+}
+
 ---@class ZombieEngineer
 ---@field id uint
 ---@field state ZombieEngineer_State
@@ -166,10 +171,9 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, 
         InventoryUtils.TransferInventoryContentsToScriptInventory(sourceEntity.get_inventory(defines.inventory.character_trash) --[[@as LuaInventory]], zombieEngineer.inventory)
         InventoryUtils.TransferInventoryContentsToScriptInventory(sourceEntity.get_inventory(defines.inventory.character_main) --[[@as LuaInventory]], zombieEngineer.inventory)
         InventoryUtils.TransferInventoryContentsToScriptInventory(sourceEntity.get_inventory(defines.inventory.character_armor) --[[@as LuaInventory]], zombieEngineer.inventory)
-    else
-        --TODO: testing: just give the zombie random thing for testing
-        --zombieEngineer.inventory = game.create_inventory(1)
-        --zombieEngineer.inventory.insert({ name = "iron-plate", count = 3 })
+    elseif TestingSettings.giveZombieItems then
+        zombieEngineer.inventory = game.create_inventory(1)
+        zombieEngineer.inventory.insert({ name = "iron-plate", count = 1 })
     end
 
     -- Create the zombie entity.
@@ -179,7 +183,7 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, 
         return nil
     end
     ---@diagnostic disable-next-line: missing-fields # Temporary work around until Factorio docs and FMTK updated to allow per type field specification.
-    zombieEngineerEntity = surface.create_entity({ name = "zombie_engineer-zombie_engineer", position = zombieCreatePosition, direction = math.random(0, 7), force = "enemy" }) --TODO: force set to enemy so can be easily targetted in .
+    zombieEngineerEntity = surface.create_entity({ name = "zombie_engineer-zombie_engineer", position = zombieCreatePosition, direction = math.random(0, 7), force = global.ZombieEngineerManager.zombieForce })
     if zombieEngineerEntity == nil then
         LoggingUtils.PrintError("Failed to create zombie engineer for '" .. sourceName .. "' at: " .. LoggingUtils.MakeGpsRichText(zombieCreatePosition.x, zombieCreatePosition.y, surface.name))
         return nil
@@ -204,11 +208,6 @@ ZombieEngineerManager.CreateZombieForce = function()
     local biterForce = game.forces["enemy"]
     zombieForce.set_friend(biterForce, true)
     biterForce.set_friend(zombieForce, true)
-
-    -- Make the Player be cease fire with the zombie.
-    for _, playerForce in pairs(global.ZombieEngineerManager.playerForces) do
-        playerForce.set_cease_fire(zombieForce, true)
-    end
 
     -- Set the zombie color as a dark brown.
     zombieForce.custom_color = { r = 0.100, g = 0.040, b = 0.0, a = 0.7 } -- Used by the zombie engineer unit as its runtime tint color.

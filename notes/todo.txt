@@ -9,13 +9,14 @@ Required
 - A zombie should path towards its target smashing through anything in its direct way. The configurable options per pathfinder request are restricted within Factorio (to avoid affecting default biters). Doing a pathfinder request with a special entity that ignores player entities will give the desired result path steps. We can then find the first target entity in the path and give our unit this as a target. The aim is to not slalom around buildings which the Factorio pathfinder will do by default.
 + When a zombie is killed it should leave a corpse behind with all of the items it had within it.
 + Stop the angry biters mod replacing our zombie when its health drops. Remove the angry prototype that mod creates and this stops it.
-+ A zombie should either be immune to belts. Alternative would be to view them as a blocking entity and destroy them.
-+ A zombie should not be targeted by base defences or any automated fighting which isn't under player control, e.g. combat bots, spidertrons. A player will have to force shoot at the zombie, ideal for when they are in the base.
++ A zombie should be immune to belts.
++ Zombies are not shootable by turrets, but will still be auto targetted by players, other units, combat robots and vehicles. This is due to it being very hard to force shoot at a target in the latency state.
 + Make gravestones be auto added to the map. Frequency controlled via mod setting just like Biter Eggs mod is.
 + Make gravestones spawn a zombie when mined/destroyed.
 + Main zombie logic runs in an error catching manner. This may lead to broken zombies and error spam until the offending zombie is removed via Editor. But it will stop hard errors from crashing the server. Suitable in this case as the state of the zombie doesn't really matter to the wider play-through.
 - Test the various error messages are reached and in non-testing mode don't raise any hard errors in-game.
 - Try doing a STOP command on a zombie for infinite time. See if that makes HasCommand() return negative. Might be better also than checking for the wander state.
+
 
 
 Nice To Have
@@ -30,7 +31,7 @@ Nice To Have
 - It should take a little bit of time for a player's corpse to turn into a Zombie. If other players remove all of the items from it before then, then no zombie is created. They are deemed to have dealt with the corpse.
 - Add mod settings for:
     - Zombie health, speed and damage attack.
-    - If the player and their defences should auto target a zombie.
+    - If the player's defences should auto target a zombie.
     - Frequency of graves across the map.
     - Probability of a grave containing a zombie.
     - Distance from spawn that the zombie starts to rampage.
@@ -41,6 +42,8 @@ Nice To Have
 - Zombie should be immune to poison and static discharge defence.
 - When a zombie arises from a killed player or a gravestone have some graphical niceties.
 - Add effects when a gravestone is destroyed.
+- Add a line from the player to their zombie/its corpse if it dies.
+
 
 
 Unknowns / Undecided
@@ -50,6 +53,7 @@ Unknowns / Undecided
 - If a zombie is unable to reach a player for too long it should attack nearest player buildings. Effectively you can't just kite one forever or bounce them between 2 players going in and out of detection range.
 - Should zombies have tougher versions that scale with evolution?
 - At present graves are only destroyable (like biter eggs), should they be minable instead?
+
 
 
 Future Ideas
@@ -63,12 +67,13 @@ Future Ideas
     - Kill lists would show different counts for each color. This could possibly be handled by making the entities not directly count and instead adding the kill via script reaction though the LuaFlowStatistics.
 
 
+
 Future Code
 -----------
 - Add a new utility to support scheduling nth tick events care free. So like event scheduler, where you can just add a function from a code module to be run at nth tick and not have to worry about other modules scheduling.
 - Make a helper function that runs a callback function against each layer in an animation/sprite. Should handle if there are layers or not. Abstracting this from the player. Would make us support modded character graphics better.
 - Review the LoggingUtils now as I think we have a lot of overlapping functions in there. This is a breaking changes utility version already in v1.0.0 of the Zombie mod.
-- Somehow the deploy script of this removes another JD mod.
+
 
 
 Rejected
@@ -77,17 +82,11 @@ Rejected
 - No way to enable a player or player driven vehicle to be able to naturally or automatically target a zombie. As the only way to stop defences (turrets, combat robots, spidertrons, etc) from targetting Zombies was to make the player's force be in a cease fire towards them.
 
 
-Known Limitations
------------------
-- It only handles the vanilla forces; player and enemy.
-- It only handles vanilla character graphics.
-- It only handles vanilla entities and tiles for zombie pathing, plus my Biter Eggs mod.
-- You can't force attack a target with your melee weapon (no ammo). So you have to use ammo to attack zombies.
-
 
 Known Capabilities
 ------------------
 - Handles different surfaces.
+
 
 
 Odd Notes

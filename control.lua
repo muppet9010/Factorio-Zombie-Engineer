@@ -1,4 +1,4 @@
-local ZombieEngineerManager = require('scripts.zombie-engineer-manager')
+local ZombieEngineerManager = require("scripts.zombie-engineer-manager")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 
@@ -11,7 +11,7 @@ end
 local function OnLoad()
     --Any Remote Interface registration calls can go in here or in root of control.lua
     if global.debugSettings == nil or global.debugSettings.testing == nil or global.debugSettings.testing then
-        CommandsUtils.Register("ZombieEngineer_CallOnStartup", "Only intended for development and testing, likely will break things in a real game. ", Control.CallOnStartupCommand, true)
+        CommandsUtils.Register("ZombieEngineer_CallOnStartup", "Only intended for development and testing, likely will break things in a real game.", Control.CallOnStartupCommand, true)
     end
 
     ZombieEngineerManager.OnLoad()

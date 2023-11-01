@@ -1,6 +1,4 @@
 local TableUtils = require('utility.helper-utils.table-utils')
-local Constants = require('constants')
-local CollisionMaskUtil = require("__core__/lualib/collision-mask-util")
 
 local characterPrototypeReference = data.raw["character"]["character"]
 
@@ -20,13 +18,14 @@ local zombieEngineer = {
     icon = "__core__/graphics/icons/entity/character.png",
     icon_size = 64,
     icon_mipmaps = 4,
-    flags = { "placeable-player", "placeable-enemy", "placeable-off-grid", "not-repairable", "breaths-air" },
+    flags = { "placeable-player", "placeable-enemy", "placeable-off-grid", "not-repairable" },
     max_health = 1000,
     order = "z-a-a",
     subgroup = "enemies",
     healing_per_tick = 0.02, -- Same as big biter.
     collision_box = { { -0.2, -0.2 }, { 0.2, 0.2 } },
     selection_box = { { -0.4, -0.7 }, { 0.4, 0.4 } },
+    trigger_target_mask = { "common", "ground-unit", "zombie_engineer-zombie_engineer" },
     damaged_trigger_effect = {
         type = "create-entity",
         entity_name = "enemy-damaged-explosion",
@@ -71,7 +70,7 @@ local zombieEngineer = {
 }
 
 ---@diagnostic disable: missing-fields # Temporary work around until Factorio docs fix this API doc. Logged here: https://forums.factorio.com/viewtopic.php?f=233&t=109364
--- TODO: removed for start of the game.
+-- Removed as was too hard at start of game and should make zombie variations for armor levels (nice to have).
 --[[zombieEngineer.resistances =
 {
     {
@@ -96,6 +95,5 @@ local zombieEngineer = {
     }
 }]]
 ---@diagnostic enable: missing-fields
-
 
 data:extend({ zombieEngineer })
