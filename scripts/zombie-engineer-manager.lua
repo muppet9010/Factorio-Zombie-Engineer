@@ -6,6 +6,11 @@ local PositionUtils = require("utility.helper-utils.position-utils")
 local Colors = require("utility.lists.colors")
 local DirectionUtils = require("utility.helper-utils.direction-utils")
 
+---@class ZombieEngineer_TestingSettings
+local TestingSettings = {
+    giveZombieDefaultItems = false
+}
+
 ---@class ZombieEngineer
 ---@field id uint
 ---@field state ZombieEngineer_State
@@ -14,6 +19,8 @@ local DirectionUtils = require("utility.helper-utils.direction-utils")
 ---@field surface LuaSurface
 ---@field sourceName string
 ---@field sourcePlayer? LuaPlayer
+---@field zombieName? string
+---@field nameRenderId? uint64
 ---@field inventory? LuaInventory
 ---@field objective ZombieEngineer_Objective
 ---@field action ZombieEngineer_Action
@@ -73,6 +80,7 @@ ZombieEngineerManager.CreateGlobals = function()
     global.ZombieEngineerManager.zombieEntityCollisionMask = global.ZombieEngineerManager.zombieEntityCollisionMask ---@type data.CollisionMask # Obtained as part of OnStartup if required.
     global.ZombieEngineerManager.playerForces = global.ZombieEngineerManager.playerForces ---@type LuaForce[]
     global.ZombieEngineerManager.requestedPaths = global.ZombieEngineerManager.requestedPaths or {} ---@type table<uint, ZombieEngineer_PathRequestDetails> # Key'd by the path request ID.
+    global.ZombieEngineerManager.playerDeathCounts = global.ZombieEngineerManager.playerDeathCounts or {} ---@type table<uint, uint> # Player Index to death count.
 
     global.ZombieEngineerManager.Settings = {
         distractionRange = 50, -- Longer than a rocket launcher.
@@ -80,7 +88,7 @@ ZombieEngineerManager.CreateGlobals = function()
 end
 
 ZombieEngineerManager.OnLoad = function()
-    Events.RegisterHandlerEvent(defines.events.on_pre_player_died, "ZombieEngineerManager.OnPrePlayerDied", ZombieEngineerManager.OnPrePlayerDied)
+    Events.RegisterHandlerEvent(defines.events.on_player_died, "ZombieEngineerManager.OnPlayerDied", ZombieEngineerManager.OnPlayerDied)
     Events.RegisterHandlerEvent(defines.events.on_entity_died, "ZombieEngineerManager.OnEntityDiedGravestone", ZombieEngineerManager.OnEntityDiedGravestone, { { filter = "name", name = "zombie_engineer-grave_with_headstone" } })
     Events.RegisterHandlerEvent(defines.events.on_script_path_request_finished, "ZombieEngineerManager.OnScriptPathRequestFinished", ZombieEngineerManager.OnScriptPathRequestFinished)
     Events.RegisterHandlerEvent(defines.events.on_entity_died, "ZombieEngineerManager.OnEntityDiedZombieEngineer", ZombieEngineerManager.OnEntityDiedZombieEngineer, { { filter = "name", name = "zombie_engineer-zombie_engineer" } })
@@ -100,39 +108,39 @@ ZombieEngineerManager.OnStartup = function()
     end
 end
 
----@param eventData EventData.on_pre_player_died
-ZombieEngineerManager.OnPrePlayerDied = function(eventData)
+---@param eventData EventData.on_player_died
+ZombieEngineerManager.OnPlayerDied = function(eventData)
     local player = game.get_player(eventData.player_index)
     if player == nil then
         LoggingUtils.PrintError("On_Player_Died event occurred for non-player player_index: " .. eventData.player_index)
         return
     end
 
-    local character = player.character
-    if character == nil then
-        LoggingUtils.PrintError("Player died without a character, player name: '" .. player.name .. "'")
-        return
-    end
+    global.ZombieEngineerManager.playerDeathCounts[eventData.player_index] = (global.ZombieEngineerManager.playerDeathCounts[eventData.player_index] ~= nil and global.ZombieEngineerManager.playerDeathCounts[eventData.player_index] or 0) + 1
 
-    ZombieEngineerManager.CreateZombie(player, eventData.player_index, player.name, character, character.surface, character.position, character.position)
+    local player_name = player.name
+    local zombieName = player_name .. " (" .. global.ZombieEngineerManager.playerDeathCounts[eventData.player_index] .. ")"
+
+    -- Players position has been returned to their corpse by the point this event fires (if they were in map view at time of death).
+    ZombieEngineerManager.CreateZombie(player, eventData.player_index, player_name, zombieName, player.surface, player.position, player.position)
 end
 
 ---@param eventData EventData.on_entity_died
 ZombieEngineerManager.OnEntityDiedGravestone = function(eventData)
     local diedEntity = eventData.entity
     if diedEntity.name ~= "zombie_engineer-grave_with_headstone" then return end
-    ZombieEngineerManager.CreateZombie(nil, nil, "gravestone", nil, diedEntity.surface, diedEntity.position, diedEntity.position)
+    ZombieEngineerManager.CreateZombie(nil, nil, "gravestone", nil, diedEntity.surface, nil, diedEntity.position)
 end
 
 ---@param player? LuaPlayer
 ---@param player_index? uint
 ---@param sourceName string
----@param sourceEntity? LuaEntity
+---@param zombieName? string
 ---@param surface LuaSurface
----@param corpsePosition MapPosition
+---@param corpsePosition? MapPosition
 ---@param zombieTargetPosition MapPosition
 ---@return ZombieEngineer?
-ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, sourceEntity, surface, corpsePosition, zombieTargetPosition)
+ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, zombieName, surface, corpsePosition, zombieTargetPosition)
     local currentTick = game.tick
 
     local zombieEngineer = {} ---@class ZombieEngineer
@@ -143,33 +151,28 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, 
     zombieEngineer.objective = ZOMBIE_ENGINEER_OBJECTIVE.movingToSpawn
     zombieEngineer.action = ZOMBIE_ENGINEER_ACTION.idle
 
-    -- If there's no character look for this player's current corpse if one specified and exists, then take the items from it.
-    -- TODO: I suspect this isn't needed. It was before, but I had to react to the pre death event now as otherwise the character seems to have gone.
-    -- TODO: I might never have tested after doing this tbh, and just forgot about it. Look into if reacting to pre event is bad and if it is, if the player's view is not on their character when they die can i find their corpse somehow?
-    --[[if sourceEntity == nil and player ~= nil and corpsePosition ~= nil then
+    -- If there's a corpse position then look for this player's current corpse there, then take the items from it.
+    if player ~= nil and corpsePosition ~= nil then
+        local playersCorpse ---@type LuaEntity?
         local characterCorpsesNearBy = surface.find_entities_filtered({ position = corpsePosition, radius = 5, type = "character-corpse" })
         for _, corpse in pairs(characterCorpsesNearBy) do
             if corpse.character_corpse_tick_of_death == currentTick and corpse.character_corpse_player_index == player_index then
-                sourceEntity = corpse
-                local targetInventory = characterCorpse.get_inventory(defines.inventory.character_corpse) ---@cast targetInventory -nil
-                zombieEngineer.inventory = InventoryUtils.TransferInventoryContentsToScriptInventory(corpseInventory, nil)
+                playersCorpse = corpse
+                local targetInventory = playersCorpse.get_inventory(defines.inventory.character_corpse)
+                if targetInventory ~= nil then
+                    zombieEngineer.inventory = InventoryUtils.TransferInventoryContentsToScriptInventory(targetInventory, nil)
+                else
+                    LoggingUtils.PrintError("Failed to find inventory for character corpse for '" .. sourceName .. "' at: " .. LoggingUtils.MakeGpsRichText(playersCorpse.position.x, playersCorpse.position.y, surface.name))
+                end
                 break
             end
         end
-        if characterCorpse == nil then
+        if playersCorpse == nil then
             LoggingUtils.PrintError("Failed to find character corpse for '" .. sourceName .. "' at: " .. LoggingUtils.MakeGpsRichText(corpsePosition.x, corpsePosition.y, surface.name))
         end
-    end]]
-    if sourceEntity ~= nil then
-        zombieEngineer.inventory = InventoryUtils.TransferInventoryContentsToScriptInventory(sourceEntity.get_inventory(defines.inventory.character_ammo) --[[@as LuaInventory]], nil)
-        InventoryUtils.TransferInventoryContentsToScriptInventory(sourceEntity.get_inventory(defines.inventory.character_guns) --[[@as LuaInventory]], zombieEngineer.inventory)
-        InventoryUtils.TransferInventoryContentsToScriptInventory(sourceEntity.get_inventory(defines.inventory.character_trash) --[[@as LuaInventory]], zombieEngineer.inventory)
-        InventoryUtils.TransferInventoryContentsToScriptInventory(sourceEntity.get_inventory(defines.inventory.character_main) --[[@as LuaInventory]], zombieEngineer.inventory)
-        InventoryUtils.TransferInventoryContentsToScriptInventory(sourceEntity.get_inventory(defines.inventory.character_armor) --[[@as LuaInventory]], zombieEngineer.inventory)
-    else
-        --TODO: testing: just give the zombie random thing for testing
-        --zombieEngineer.inventory = game.create_inventory(1)
-        --zombieEngineer.inventory.insert({ name = "iron-plate", count = 3 })
+    elseif TestingSettings.giveZombieDefaultItems then
+        zombieEngineer.inventory = game.create_inventory(1)
+        zombieEngineer.inventory.insert({ name = "iron-plate", count = 1 })
     end
 
     -- Create the zombie entity.
@@ -179,7 +182,7 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, 
         return nil
     end
     ---@diagnostic disable-next-line: missing-fields # Temporary work around until Factorio docs and FMTK updated to allow per type field specification.
-    zombieEngineerEntity = surface.create_entity({ name = "zombie_engineer-zombie_engineer", position = zombieCreatePosition, direction = math.random(0, 7), force = "enemy" }) --TODO: force set to enemy so can be easily targetted in .
+    zombieEngineerEntity = surface.create_entity({ name = "zombie_engineer-zombie_engineer", position = zombieCreatePosition, direction = math.random(0, 7), force = global.ZombieEngineerManager.zombieForce })
     if zombieEngineerEntity == nil then
         LoggingUtils.PrintError("Failed to create zombie engineer for '" .. sourceName .. "' at: " .. LoggingUtils.MakeGpsRichText(zombieCreatePosition.x, zombieCreatePosition.y, surface.name))
         return nil
@@ -193,6 +196,11 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, 
     global.ZombieEngineerManager.zombieEngineers[zombieEngineer.id] = zombieEngineer
     global.ZombieEngineerManager.zombieEngineerUnitNumberLookup[zombieEngineer.unitNumber] = zombieEngineer
 
+    if zombieName ~= nil then
+        zombieEngineer.zombieName = zombieName
+        zombieEngineer.nameRenderId = rendering.draw_text({ text = zombieName, surface = zombieEngineer.surface, target = zombieEngineer.entity, color = zombieEngineer.sourcePlayer.color, target_offset = { 0.0, -2.0 }, scale_with_zoom = true, alignment = "center", vertical_alignment = "middle" })
+    end
+
     return zombieEngineer
 end
 
@@ -204,11 +212,6 @@ ZombieEngineerManager.CreateZombieForce = function()
     local biterForce = game.forces["enemy"]
     zombieForce.set_friend(biterForce, true)
     biterForce.set_friend(zombieForce, true)
-
-    -- Make the Player be cease fire with the zombie.
-    for _, playerForce in pairs(global.ZombieEngineerManager.playerForces) do
-        playerForce.set_cease_fire(zombieForce, true)
-    end
 
     -- Set the zombie color as a dark brown.
     zombieForce.custom_color = { r = 0.100, g = 0.040, b = 0.0, a = 0.7 } -- Used by the zombie engineer unit as its runtime tint color.
@@ -524,17 +527,17 @@ ZombieEngineerManager.OnEntityDiedZombieEngineer = function(eventData)
         return
     end
 
-    local corpseForce, playerIndex, sourcePlayer, corpseColor ---@type ForceIdentification, uint?, LuaPlayer?, Color
+    local corpseForce, playerIndex, sourcePlayer, corpseColor ---@type ForceIdentification, uint?, LuaPlayer?, Color?
     if zombieEngineer.sourcePlayer ~= nil then
         sourcePlayer = zombieEngineer.sourcePlayer ---@cast sourcePlayer -nil
         corpseForce = sourcePlayer.force
         playerIndex = sourcePlayer.index
-        color = sourcePlayer.color
+        corpseColor = sourcePlayer.color
     else
         sourcePlayer = nil
         corpseForce = global.ZombieEngineerManager.zombieForce
         playerIndex = nil
-        color = global.ZombieEngineerManager.zombieForce.color
+        corpseColor = nil
     end
     local inventorySize = zombieEngineer.inventory and #zombieEngineer.inventory or 0
     local corpseDirection = DirectionUtils.OrientationToNearestDirection(entity.orientation)
@@ -547,8 +550,7 @@ ZombieEngineerManager.OnEntityDiedZombieEngineer = function(eventData)
             local corpseInventory = zombieCorpse.get_inventory(defines.inventory.character_corpse) ---@cast corpseInventory -nil
             InventoryUtils.TryMoveInventoriesLuaItemStacks(zombieEngineer.inventory, corpseInventory, true, 100)
         end
-        -- TODO: this works for player zombie, but not grave zombie I believe.
-        zombieCorpse.color = color
+        zombieCorpse.color = corpseColor
     end
 
     ZombieEngineerManager.ZombieEntityRemoved(zombieEngineer)

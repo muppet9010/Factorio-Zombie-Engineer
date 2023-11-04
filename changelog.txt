@@ -1,8 +1,27 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.0.0
-Date: 2022-xx-xx
+Version: 1.0.2
+Date: 2023-10-29
   Features:
-    - Initial Release
+  Changes:
+    - Zombies are not shootable by turrets, but will still be auto targetted by players, other units, combat robots and vehicles.
+    - Zombies are immune to poison (don't breath air).
+    - Zombies are immune to slowdown capsules. Had to make the slowdown capsule explicitly affect all other units, vehicles and characters.
+    - Zombies get name tags if they are a risen player's corpse.
+  Bugfixes:
+  Info:
+---------------------------------------------------------------------------------------------------
+Version: 1.0.1
+Date: 2023-10-28
+  Features:
+  Changes:
+    - Zombies stat balancing.
+  Bugfixes:
+  Info:
+---------------------------------------------------------------------------------------------------
+Version: 1.0.0
+Date: 2023-10-28
+  Features:
+    - Alpha Release
   Changes:
   Bugfixes:
   Info:

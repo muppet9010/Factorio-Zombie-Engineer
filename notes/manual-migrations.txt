@@ -1,0 +1,40 @@
+MANUAL SCRIPTS TO MIGRATE DEATHS ACROSS INTO THIS MOD
+----------------------------
+
+This will write out to in-game text an entry for each player's death captured by the Death Counter mod.
+
+/sc __Death_Counter__
+local deathCounts = {}
+for playerName, playerDetails in pairs(global.players) do
+    local totalCount = 0
+    for _, thisCount in pairs(playerDetails.DeathCount) do
+        totalCount = totalCount + thisCount
+    end
+    local playerIndex;
+    for _, player in pairs(game.players) do
+        if player.name == playerName then
+            playerIndex = player.index
+            break
+        end
+    end
+    if playerIndex ~= nil then
+        --[[game.player.print(playerIndex .. " = " .. totalCount)]]
+        deathCounts[playerIndex] = totalCount
+    else
+        game.player.print("can't find player index for name: " .. playerName)
+    end
+end
+local updateDeathCountString = ""
+for playerIndex, totalCount in pairs(deathCounts) do
+    updateDeathCountString = updateDeathCountString .. playerIndex .. " = "..totalCount.."   ---   "
+end
+game.player.print(updateDeathCountString)
+
+
+
+This will set the death count in the zombie mod for this Player Index to the provided current death count.
+
+/sc __zombie_engineer__
+local playerIndex = 1
+local deathCount = 3
+global.ZombieEngineerManager.playerDeathCounts[playerIndex] = deathCount
