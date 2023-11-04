@@ -21,9 +21,10 @@ Required
 
 Nice To Have
 ------------
-- Equip the players inventory for passive stuff to be active, e.g. power armor, legs, shields, regular armor resistances. At present a zombie has heavy armor resistances hard coded.
+- Equip the players inventory for passive stuff to be active, e.g. power armor, legs, shields, regular armor resistances.
 - Name the zombie after the player and their death number.
 - When a player is killed by a zombie have an alert text and link to location saying who was killed by what zombie. As default Factorio would just list it as killed by zombie entity name.
+- Name a grave generated zombie after a list of names. Have a mod setting to define these for now.
 - Add graphical effects to zombie so it stands out. Maybe odd colors, cloud of effects around it, etc.
 - A zombie is friendly to biters, never destroying their stuff. Need to check how we path for this one.
 - Zombies able to use player weapons to shoot other players and vehicles? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences.
@@ -39,7 +40,8 @@ Nice To Have
     - Enable/Disable gravestones (default to on).
     - Probability of gravestone spawning a zombie.
 - When a player kills a zombie, add an announcement that they have put the source player to rest. Also track how many zombies each player has killed internally (use o this is a future thing).
-- Zombie should be immune to poison and static discharge defence.
++ Zombie should be immune to poison and poison capsules.
+- Zombie should be immune to static discharge defence.
 - When a zombie arises from a killed player or a gravestone have some graphical niceties.
 - Add effects when a gravestone is destroyed.
 - Add a line from the player to their zombie/its corpse if it dies.
@@ -65,6 +67,8 @@ Future Ideas
 - Use the data on how many zombies a player has kills for some interesting thing.
 - Support the standard player colors for Zombies. As can't directly color them, would need different prototypes for each color. This would have downsides in-game:
     - Kill lists would show different counts for each color. This could possibly be handled by making the entities not directly count and instead adding the kill via script reaction though the LuaFlowStatistics.
+- Review known compatibility list and see what things we should start to handle.
+- Add an interface to allow adding of random zombie names. So that they can be added from twitch chat somehow. Maybe include a way to clear the list as well. So that we can push the current twitch viewer names in as available options only.
 
 
 
