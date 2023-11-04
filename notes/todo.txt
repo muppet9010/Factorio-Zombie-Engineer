@@ -22,7 +22,7 @@ Required
 Nice To Have
 ------------
 - Equip the players inventory for passive stuff to be active, e.g. power armor, legs, shields, regular armor resistances.
-- Name the zombie after the player and their death number.
++ Name the zombie after the player and their death number.
 - When a player is killed by a zombie have an alert text and link to location saying who was killed by what zombie. As default Factorio would just list it as killed by zombie entity name.
 - Name a grave generated zombie after a list of names. Have a mod setting to define these for now.
 - Add graphical effects to zombie so it stands out. Maybe odd colors, cloud of effects around it, etc.
@@ -45,6 +45,8 @@ Nice To Have
 - When a zombie arises from a killed player or a gravestone have some graphical niceties.
 - Add effects when a gravestone is destroyed.
 - Add a line from the player to their zombie/its corpse if it dies.
+- When a zombie with no player dies have it colored the generic zombie color. This will need a new corpse prototype to hard code the color there. Also name it as a zombie corpse, vs a player corpse. I think this will need/be cleanest if the default zombie color was set in the zombie prototype, but still let the player color overwrite it if there was a player source, not sure if this is possible, so might need to duplicate the default zombie color at data and runtime stages.
+- When a non-player zombie with no inventory dies have it create a regular corpse, not a character corpse. This can always be colored the as the generic zombie color.
 
 
 
@@ -64,7 +66,7 @@ Future Ideas
 - Add camera window that tracks the zombie while it lives. See if another mod already does this that we can make use of. Include per player settings if they want this for their own zombie, all zombies or no zombies. Camera should be resizable, movable on the screen and minimisable.
 - A list of active zombies and a map view jump to them. If we do camera feature link them together somehow? use shortcut option to toggle the list.
 - Add remote interface to create zombie at arbitrary location and source player. Allow specifying equipment to give the zombie.
-- Use the data on how many zombies a player has kills for some interesting thing.
+- Use the data on how many zombies a player has killed for some interesting thing?
 - Support the standard player colors for Zombies. As can't directly color them, would need different prototypes for each color. This would have downsides in-game:
     - Kill lists would show different counts for each color. This could possibly be handled by making the entities not directly count and instead adding the kill via script reaction though the LuaFlowStatistics.
 - Review known compatibility list and see what things we should start to handle.

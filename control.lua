@@ -11,7 +11,7 @@ end
 local function OnLoad()
     --Any Remote Interface registration calls can go in here or in root of control.lua
     if global.debugSettings == nil or global.debugSettings.testing == nil or global.debugSettings.testing then
-        CommandsUtils.Register("ZombieEngineer_CallOnStartup", "Only intended for development and testing, likely will break things in a real game.", Control.CallOnStartupCommand, true)
+        CommandsUtils.Register("zombie-engineer-call-on-startup", "Only intended for development and testing, likely will break things in a real game.", Control.CallOnStartupCommand, true)
     end
 
     ZombieEngineerManager.OnLoad()
@@ -26,7 +26,7 @@ end
 
 local function OnStartup()
     global.debugSettings = global.debugSettings or {}
-    global.debugSettings.testing = false -- TODO
+    global.debugSettings.testing = true -- TODO
 
     CreateGlobals()
     OnLoad()
