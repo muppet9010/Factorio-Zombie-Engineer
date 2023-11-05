@@ -17,7 +17,7 @@ local TestingSettings = {
 ---@field entity? LuaEntity
 ---@field unitNumber uint
 ---@field surface LuaSurface
----@field sourceName string
+---@field sourceName string # Either source player's name, "gravestone" or the text passed in on the interface call.
 ---@field sourcePlayer? LuaPlayer
 ---@field zombieName? string
 ---@field nameRenderId? uint64
@@ -115,14 +115,23 @@ ZombieEngineerManager.OnPlayerDied = function(eventData)
         LoggingUtils.PrintError("On_Player_Died event occurred for non-player player_index: " .. eventData.player_index)
         return
     end
+    local player_name = player.name
+    local player_surface = player.surface
+    local player_position = player.position
+
+    if eventData.cause ~= nil then
+        local zombieKiller = global.ZombieEngineerManager.zombieEngineerUnitNumberLookup[eventData.cause.unit_number] ---@type ZombieEngineer?
+        if zombieKiller ~= nil and zombieKiller.sourcePlayer ~= nil then
+            game.print({ "message.zombie_engineer-player_died_to", player_name, zombieKiller.sourceName })
+        end
+    end
 
     global.ZombieEngineerManager.playerDeathCounts[eventData.player_index] = (global.ZombieEngineerManager.playerDeathCounts[eventData.player_index] ~= nil and global.ZombieEngineerManager.playerDeathCounts[eventData.player_index] or 0) + 1
 
-    local player_name = player.name
     local zombieName = player_name .. " (" .. global.ZombieEngineerManager.playerDeathCounts[eventData.player_index] .. ")"
 
     -- Players position has been returned to their corpse by the point this event fires (if they were in map view at time of death).
-    ZombieEngineerManager.CreateZombie(player, eventData.player_index, player_name, zombieName, player.surface, player.position, player.position)
+    ZombieEngineerManager.CreateZombie(player, eventData.player_index, player_name, zombieName, player_surface, player_position, player_position)
 end
 
 ---@param eventData EventData.on_entity_died

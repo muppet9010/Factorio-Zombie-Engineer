@@ -2,6 +2,7 @@
 Version: 1.0.3
 Date: 2023-11-XXXX
   Features:
+    - When a player is killed by a zombie a detailed alert is raised in chat text.
   Changes:
   Bugfixes:
   Info:
@@ -9,11 +10,11 @@ Date: 2023-11-XXXX
 Version: 1.0.2
 Date: 2023-11-04
   Features:
+    - Zombies get name tags if they are a risen player's corpse.
   Changes:
     - Zombies are not shootable by turrets, but will still be auto targeted by players, other units, combat robots and vehicles.
     - Zombies are immune to poison (don't breath air).
     - Zombies are immune to slowdown capsules. Had to make the slowdown capsule explicitly affect all other units, vehicles and characters.
-    - Zombies get name tags if they are a risen player's corpse.
   Bugfixes:
   Info:
 ---------------------------------------------------------------------------------------------------
