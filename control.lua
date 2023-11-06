@@ -26,7 +26,7 @@ end
 
 local function OnStartup()
     global.debugSettings = global.debugSettings or {}
-    global.debugSettings.testing = true -- TODO
+    global.debugSettings.testing = false -- TODO
 
     CreateGlobals()
     OnLoad()

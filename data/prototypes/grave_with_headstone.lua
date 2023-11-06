@@ -1,4 +1,5 @@
 local Constants = require('constants')
+local CollisionMaskUtil = require("__core__/lualib/collision-mask-util")
 
 local zombieEngineerPathCollisionLayer = data.raw["simple-entity"]["zombie_engineer-zombie_engineer_path_collision_layer"].collision_mask[1]
 
@@ -26,9 +27,11 @@ local function MakeAutoplaceSettings(multiplier, order_suffix)
     } --[[@as data.AutoplaceSpecification]]
 end
 
+
+
 ---@type data.SimpleEntityWithForcePrototype
 local graveWithHeadstonePrototype = {
-    type = 'simple-entity-with-force',
+    type = "simple-entity-with-force",
     name = "zombie_engineer-grave_with_headstone",
     enemy_map_color = { r = 0.54, g = 0.0, b = 0.0 },
     flags = { "placeable-player", "placeable-enemy", "not-flammable", "not-repairable", "placeable-off-grid" },
@@ -40,7 +43,7 @@ local graveWithHeadstonePrototype = {
     collision_box = { { -0.4, -0.5 }, { 0.4, 0 } },
     selection_box = { { -0.5, -0.9 }, { 0.5, 1.5 } },
     map_generator_bounding_box = { { -0.7, -0.7 }, { 0.7, 1.7 } },
-    collision_mask = { "item-layer", "object-layer", "player-layer", "water-tile", zombieEngineerPathCollisionLayer }, -- Default plus Zombie.
+    collision_mask = CollisionMaskUtil.add_layer(CollisionMaskUtil.get_default_mask("simple-entity-with-force"), zombieEngineerPathCollisionLayer),
     vehicle_impact_sound = { filename = "__base__/sound/car-stone-impact.ogg", volume = 1.0 },
     render_layer = "object",
     picture = {

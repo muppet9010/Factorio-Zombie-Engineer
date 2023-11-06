@@ -6,6 +6,7 @@ local Constants = require("constants")
 local StringUtils = require("utility.helper-utils.string-utils")
 local TableUtils = require("utility.helper-utils.table-utils")
 local Colors = require("utility.lists.colors")
+local EntityTypeGroups = require("utility.lists.entity-type-groups")
 
 ----------------------------------------------------------------------------------
 --                          PUBLIC FUNCTIONS
@@ -251,7 +252,7 @@ LoggingUtils.PrintThingsDetails = function(thing, _tablesLogged)
                 speed = thing.speed,
                 backer_name = thing.backer_name
             }
-            if thing_type == "locomotive" or thing_type == "cargo-wagon" or thing_type == "fluid-wagon" or thing_type == "artillery-wagon" then
+            if EntityTypeGroups.AllCarriageTypes_Dictionary[thing_type] ~= nil then
                 entityDetails.trainId = thing.train.id
             end
 

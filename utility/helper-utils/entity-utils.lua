@@ -5,8 +5,7 @@
 
 local EntityUtils = {} ---@class Utility_EntityUtils
 local PositionUtils = require("utility.helper-utils.position-utils")
-
-local MovablePrototypeTypes = { unit = "unit", character = "character", car = "car", tank = "tank", ["spider-vehicle"] = "spider-vehicle" }
+local EntityTypeGroups = require("utility.lists.entity-type-groups")
 
 --- Returns all objects in the area that match the very specific requirements.
 ---@param surface LuaSurface
@@ -141,7 +140,7 @@ EntityUtils.MoveKillableObjectsFromEntityBoundingBox = function(surface, central
     local entityMoved, entityNewPosition ---@type boolean, MapPosition?
     for _, entity in pairs(entitiesInTheWay) do
         entityMoved = false
-        if MovablePrototypeTypes[entity.type] ~= nil then
+        if EntityTypeGroups.TeleportableTypes_Dictionary[entity.type] ~= nil then
             entityNewPosition = surface.find_non_colliding_position(entity.name, entity.position, 2, 0.1)
             if entityNewPosition ~= nil then
                 entity.teleport(entityNewPosition)
@@ -152,6 +151,30 @@ EntityUtils.MoveKillableObjectsFromEntityBoundingBox = function(surface, central
             entity.die(createdEntityForce, centralEntity)
         end
     end
+end
+
+--- Gets the player controlling the entity if there is one, otherwise returns nil.
+--- This may be a best guess in some cases.
+---@param entity LuaEntity
+---@param entityType string
+---@return LuaPlayer|nil controllingPlayer
+EntityUtils.GetPlayerControllingEntity = function(entity, entityType)
+    local playerOrCharacter ---@type LuaPlayer|LuaEntity|nil
+    if entityType == "character" then
+        return entity.player
+    elseif EntityTypeGroups.NonRailVehicles_Dictionary[entityType] ~= nil then
+        playerOrCharacter = entity.get_driver() or entity.get_passenger()
+    elseif EntityTypeGroups.AllCarriageTypes_Dictionary[entityType] ~= nil then
+        for _, carriage in pairs(entity.train.carriages) do
+            playerOrCharacter = carriage.get_driver()
+            if playerOrCharacter ~= nil then
+                break
+            end
+        end
+    end
+
+    if playerOrCharacter == nil then return nil end
+    return playerOrCharacter.is_player() and playerOrCharacter --[[@as LuaPlayer]] or (playerOrCharacter --[[@as LuaEntity]]).player
 end
 
 return EntityUtils

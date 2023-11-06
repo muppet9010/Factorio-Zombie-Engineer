@@ -16,6 +16,7 @@ Required
 + Main zombie logic runs in an error catching manner. This may lead to broken zombies and error spam until the offending zombie is removed via Editor. But it will stop hard errors from crashing the server. Suitable in this case as the state of the zombie doesn't really matter to the wider play-through.
 - Test the various error messages are reached and in non-testing mode don't raise any hard errors in-game.
 - Try doing a STOP command on a zombie for infinite time. See if that makes HasCommand() return negative. Might be better also than checking for the wander state.
+- Add a thumbnail to the mod.
 
 
 
@@ -24,8 +25,8 @@ Nice To Have
 - Equip the players inventory for passive stuff to be active, e.g. power armor, legs, shields, regular armor resistances.
 + Name the zombie after the player and their death number.
 + When a player is killed by a zombie have an alert text and link to location saying who was killed by what zombie. As default Factorio would just list it as killed by zombie entity name.
-- When a player kills a zombie, add an announcement that they have put the source player to rest.
-- Add a line from the player to their zombie/its corpse if it dies.
++ When a player kills a zombie, add an announcement that they have put the source player to rest.
+- Add a line from the player to their zombie/it's corpse if it dies. Include a per player mod setting to control if this is shown or not. Also the line's thickness.
 - Name a grave generated zombie after a list of names. Have a mod setting to define these for now.
 - Add graphical effects to zombie so it stands out. Maybe odd colors, cloud of effects around it, etc.
 - Zombies able able to use player weapons to shoot other players, vehicles, combat robots? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences. When shooting the zombie should have a temporary speed reduction like the player does.

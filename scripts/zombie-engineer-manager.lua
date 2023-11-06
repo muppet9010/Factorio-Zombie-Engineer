@@ -5,6 +5,8 @@ local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local PositionUtils = require("utility.helper-utils.position-utils")
 local Colors = require("utility.lists.colors")
 local DirectionUtils = require("utility.helper-utils.direction-utils")
+local EntityUtils = require("utility.helper-utils.entity-utils")
+local EntityTypeGroups = require("utility.lists.entity-type-groups")
 
 ---@class ZombieEngineer_TestingSettings
 local TestingSettings = {
@@ -120,9 +122,9 @@ ZombieEngineerManager.OnPlayerDied = function(eventData)
     local player_position = player.position
 
     if eventData.cause ~= nil then
-        local zombieKiller = global.ZombieEngineerManager.zombieEngineerUnitNumberLookup[eventData.cause.unit_number] ---@type ZombieEngineer?
-        if zombieKiller ~= nil and zombieKiller.sourcePlayer ~= nil then
-            game.print({ "message.zombie_engineer-player_died_to", player_name, zombieKiller.sourceName })
+        local killerZombie = global.ZombieEngineerManager.zombieEngineerUnitNumberLookup[eventData.cause.unit_number] ---@type ZombieEngineer?
+        if killerZombie ~= nil and killerZombie.sourcePlayer ~= nil then
+            game.print({ "message.zombie_engineer-player_died_to", player_name, killerZombie.sourceName })
         end
     end
 
@@ -352,7 +354,7 @@ ZombieEngineerManager.FindDistractionTarget = function(zombieEngineer, zombieCur
         end
     end
 
-    local nearbyVehicles = zombieEngineer.surface.find_entities_filtered({ type = { "car", "spider-vehicle" }, position = zombieCurrentPosition, radius = global.ZombieEngineerManager.Settings.distractionRange, force = global.ZombieEngineerManager.playerForces })
+    local nearbyVehicles = zombieEngineer.surface.find_entities_filtered({ type = EntityTypeGroups.NonRailVehicles_List, position = zombieCurrentPosition, radius = global.ZombieEngineerManager.Settings.distractionRange, force = global.ZombieEngineerManager.playerForces })
     for _, vehicleEntity in pairs(nearbyVehicles) do
         if vehicleEntity.get_driver() ~= nil or vehicleEntity.get_passenger() ~= nil then
             thisDistance = PositionUtils.GetDistance(zombieCurrentPosition, vehicleEntity.position)
@@ -563,6 +565,15 @@ ZombieEngineerManager.OnEntityDiedZombieEngineer = function(eventData)
     end
 
     ZombieEngineerManager.ZombieEntityRemoved(zombieEngineer)
+
+    local zombieKiller = eventData.cause
+    local zombieKillerPlayer ---@type LuaPlayer?
+    if zombieKiller ~= nil then
+        zombieKillerPlayer = EntityUtils.GetPlayerControllingEntity(zombieKiller, zombieKiller.type)
+    end
+    if zombieKillerPlayer and zombieEngineer.sourcePlayer ~= nil then
+        game.print({ "message.zombie_engineer-player_killed_zombie", zombieKillerPlayer.name, zombieEngineer.sourceName })
+    end
 end
 
 ---@param zombieEngineer ZombieEngineer
