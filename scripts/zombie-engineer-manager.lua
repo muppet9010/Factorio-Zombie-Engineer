@@ -7,6 +7,7 @@ local Colors = require("utility.lists.colors")
 local DirectionUtils = require("utility.helper-utils.direction-utils")
 local EntityUtils = require("utility.helper-utils.entity-utils")
 local EntityTypeGroups = require("utility.lists.entity-type-groups")
+local StringUtils = require("utility.helper-utils.string-utils")
 
 ---@class ZombieEngineer_TestingSettings
 local TestingSettings = {
@@ -17,11 +18,13 @@ local TestingSettings = {
 ---@field id uint
 ---@field state ZombieEngineer_State
 ---@field entity? LuaEntity
+---@field entityColor Color # Currently we can't color zombie entities, so this is just used for their corpse. In the future tasks list.
 ---@field unitNumber uint
 ---@field surface LuaSurface
 ---@field sourceName string # Either source player's name, "gravestone" or the text passed in on the interface call.
 ---@field sourcePlayer? LuaPlayer
 ---@field zombieName? string
+---@field textColor Color
 ---@field nameRenderId? uint64
 ---@field inventory? LuaInventory
 ---@field objective ZombieEngineer_Objective
@@ -86,6 +89,9 @@ ZombieEngineerManager.CreateGlobals = function()
 
     global.ZombieEngineerManager.Settings = {
         distractionRange = 50, -- Longer than a rocket launcher.
+        zombieNames = {}, ---@type string[] # Populated as part of OnStartup or when the relevant mod setting changes.
+        zombieEntityColor = { r = 0.100, g = 0.040, b = 0.0, a = 0.7 }, ---@type Color
+        zombieTextColor = { r = 0.5, g = 0.5, b = 0.5, a = 0.7 } ---@type Color # Dark color isn't very readable.
     }
 end
 
@@ -110,6 +116,19 @@ ZombieEngineerManager.OnStartup = function()
     end
 end
 
+---@param event EventData.on_runtime_mod_setting_changed|nil # nil value when called from OnStartup (on_init & on_configuration_changed)
+ZombieEngineerManager.OnSettingChanged = function(event)
+    if event == nil or event.setting == "zombie_engineer-zombie_names" then
+        local rawSettingString = settings.global["zombie_engineer-zombie_names"].value --[[@as string]]
+        rawSettingString = StringUtils.StringTrim(rawSettingString)
+        if rawSettingString == "" then
+            global.ZombieEngineerManager.Settings.zombieNames = {}
+        else
+            global.ZombieEngineerManager.Settings.zombieNames = StringUtils.SplitStringOnCharactersToList(rawSettingString, ",")
+        end
+    end
+end
+
 ---@param eventData EventData.on_player_died
 ZombieEngineerManager.OnPlayerDied = function(eventData)
     local player = game.get_player(eventData.player_index)
@@ -120,6 +139,7 @@ ZombieEngineerManager.OnPlayerDied = function(eventData)
     local player_name = player.name
     local player_surface = player.surface
     local player_position = player.position
+    local player_color = player.color
 
     if eventData.cause ~= nil then
         local killerZombie = global.ZombieEngineerManager.zombieEngineerUnitNumberLookup[eventData.cause.unit_number] ---@type ZombieEngineer?
@@ -133,25 +153,27 @@ ZombieEngineerManager.OnPlayerDied = function(eventData)
     local zombieName = player_name .. " (" .. global.ZombieEngineerManager.playerDeathCounts[eventData.player_index] .. ")"
 
     -- Players position has been returned to their corpse by the point this event fires (if they were in map view at time of death).
-    ZombieEngineerManager.CreateZombie(player, eventData.player_index, player_name, zombieName, player_surface, player_position, player_position)
+    ZombieEngineerManager.CreateZombie(player, eventData.player_index, player_name, player_color, zombieName, player_color, player_surface, player_position, player_position)
 end
 
 ---@param eventData EventData.on_entity_died
 ZombieEngineerManager.OnEntityDiedGravestone = function(eventData)
     local diedEntity = eventData.entity
     if diedEntity.name ~= "zombie_engineer-grave_with_headstone" then return end
-    ZombieEngineerManager.CreateZombie(nil, nil, "gravestone", nil, diedEntity.surface, nil, diedEntity.position)
+    ZombieEngineerManager.CreateZombie(nil, nil, "gravestone", nil, nil, nil, diedEntity.surface, nil, diedEntity.position)
 end
 
 ---@param player? LuaPlayer
 ---@param player_index? uint
 ---@param sourceName string
+---@param entityColor? Color
 ---@param zombieName? string
+---@param textColor? Color
 ---@param surface LuaSurface
 ---@param corpsePosition? MapPosition
 ---@param zombieTargetPosition MapPosition
 ---@return ZombieEngineer?
-ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, zombieName, surface, corpsePosition, zombieTargetPosition)
+ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, entityColor, zombieName, textColor, surface, corpsePosition, zombieTargetPosition)
     local currentTick = game.tick
 
     local zombieEngineer = {} ---@class ZombieEngineer
@@ -161,6 +183,8 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, 
     zombieEngineer.state = ZOMBIE_ENGINEER_STATE.alive
     zombieEngineer.objective = ZOMBIE_ENGINEER_OBJECTIVE.movingToSpawn
     zombieEngineer.action = ZOMBIE_ENGINEER_ACTION.idle
+    zombieEngineer.entityColor = entityColor or global.ZombieEngineerManager.Settings.zombieEntityColor
+    zombieEngineer.textColor = textColor or global.ZombieEngineerManager.Settings.zombieTextColor
 
     -- If there's a corpse position then look for this player's current corpse there, then take the items from it.
     if player ~= nil and corpsePosition ~= nil then
@@ -207,9 +231,12 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, 
     global.ZombieEngineerManager.zombieEngineers[zombieEngineer.id] = zombieEngineer
     global.ZombieEngineerManager.zombieEngineerUnitNumberLookup[zombieEngineer.unitNumber] = zombieEngineer
 
+    if zombieName == nil and #global.ZombieEngineerManager.Settings.zombieNames > 0 then
+        zombieName = global.ZombieEngineerManager.Settings.zombieNames[math.random(#global.ZombieEngineerManager.Settings.zombieNames)]
+    end
     if zombieName ~= nil then
         zombieEngineer.zombieName = zombieName
-        zombieEngineer.nameRenderId = rendering.draw_text({ text = zombieName, surface = zombieEngineer.surface, target = zombieEngineer.entity, color = zombieEngineer.sourcePlayer.color, target_offset = { 0.0, -2.0 }, scale_with_zoom = true, alignment = "center", vertical_alignment = "middle" })
+        zombieEngineer.nameRenderId = rendering.draw_text({ text = zombieName, surface = zombieEngineer.surface, target = zombieEngineer.entity, color = zombieEngineer.textColor, target_offset = { 0.0, -2.0 }, scale_with_zoom = true, alignment = "center", vertical_alignment = "middle" })
     end
 
     return zombieEngineer
@@ -225,14 +252,14 @@ ZombieEngineerManager.CreateZombieForce = function()
     biterForce.set_friend(zombieForce, true)
 
     -- Set the zombie color as a dark brown.
-    zombieForce.custom_color = { r = 0.100, g = 0.040, b = 0.0, a = 0.7 } -- Used by the zombie engineer unit as its runtime tint color.
+    zombieForce.custom_color = global.ZombieEngineerManager.Settings.zombieEntityColor -- Used by the zombie engineer unit as its runtime tint color.
 
     return zombieForce
 end
 
 ---@param eventData NthTickEventData
 ZombieEngineerManager.ManageAllZombieEngineers = function(eventData)
-    if 1 == 1 then return end -- TODO: make it use biter pathing.
+    if 1 == 1 then return end -- FUTURE ZOMBIE PATHING: make it use biter pathing.
 
     local currentTick = eventData.tick
 
@@ -263,7 +290,7 @@ ZombieEngineerManager.ManageZombieEngineer = function(zombieEngineer, currentTic
 
     local zombieCurrentPosition = zombieEngineer.entity.position
 
-    -- TODO: if we have a path to something and its moved, then we need to get a new path. As We might need to attack something new in the way. Check the targets position and our distance from it. So just update path if its moved significantly. Keep on moving on the old path until the new path request returns.
+    -- FUTURE ZOMBIE PATHING: if we have a path to something and its moved, then we need to get a new path. As We might need to attack something new in the way. Check the targets position and our distance from it. So just update path if its moved significantly. Keep on moving on the old path until the new path request returns.
     if zombieEngineer.distractionTarget ~= nil then
         ZombieEngineerManager.ValidateDistractionTarget(zombieEngineer, zombieCurrentPosition)
     end
@@ -275,8 +302,8 @@ ZombieEngineerManager.ManageZombieEngineer = function(zombieEngineer, currentTic
         return
     end
 
-    -- TODO: clear targets when others are set.
-    -- TODO: this logic isn't completely fleshed out.
+    -- FUTURE ZOMBIE PATHING: clear targets when others are set.
+    -- FUTURE ZOMBIE PATHING: this logic isn't completely fleshed out.
     if zombieEngineer.objective == ZOMBIE_ENGINEER_OBJECTIVE.rampagingSpawn then
         if zombieEngineer.pathBlockingTarget ~= nil then
             ZombieEngineerManager.ValidatePathBlockingTarget(zombieEngineer)
@@ -288,7 +315,7 @@ ZombieEngineerManager.ManageZombieEngineer = function(zombieEngineer, currentTic
             ZombieEngineerManager.AttackPathBlockingTarget(zombieEngineer)
         end
     elseif zombieEngineer.objective == ZOMBIE_ENGINEER_OBJECTIVE.movingToSpawn then
-        --TODO
+        --FUTURE ZOMBIE PATHING
     else
         LoggingUtils.PrintError("Zombie is in un-recognised state '" .. zombieEngineer.state .. "' here: " .. LoggingUtils.MakeGpsRichText_Entity(zombieEngineer.entity))
         if global.debugSettings.testing then error("Zombie is in un-recognised state") end
@@ -320,7 +347,7 @@ end
 ZombieEngineerManager.ValidateDistractionTarget = function(zombieEngineer, zombieCurrentPosition)
     -- zombieEngineer.distractionTarget is not nil if this function run.
 
-    --TODO: we only need to check this every second or two.
+    --FUTURE ZOMBIE PATHING: we only need to check this every second or two.
 
     if not zombieEngineer.distractionTarget.valid then
         zombieEngineer.distractionTarget = nil
@@ -340,7 +367,7 @@ end
 ---@param zombieEngineer ZombieEngineer
 ---@param zombieCurrentPosition MapPosition
 ZombieEngineerManager.FindDistractionTarget = function(zombieEngineer, zombieCurrentPosition)
-    -- TODO: we only need to check this every second or two, or when we have just lost our current distraction target.
+    -- FUTURE ZOMBIE PATHING: we only need to check this every second or two, or when we have just lost our current distraction target.
 
     local nearestTargetEntity, nearestTargetDistance ---@type LuaEntity, double
     local thisDistance ---@type double
@@ -538,17 +565,16 @@ ZombieEngineerManager.OnEntityDiedZombieEngineer = function(eventData)
         return
     end
 
-    local corpseForce, playerIndex, sourcePlayer, corpseColor ---@type ForceIdentification, uint?, LuaPlayer?, Color?
+    local corpseForce, playerIndex, sourcePlayer ---@type ForceIdentification, uint?, LuaPlayer?
+    local corpseColor = zombieEngineer.entityColor
     if zombieEngineer.sourcePlayer ~= nil then
         sourcePlayer = zombieEngineer.sourcePlayer ---@cast sourcePlayer -nil
         corpseForce = sourcePlayer.force
         playerIndex = sourcePlayer.index
-        corpseColor = sourcePlayer.color
     else
         sourcePlayer = nil
         corpseForce = global.ZombieEngineerManager.zombieForce
         playerIndex = nil
-        corpseColor = nil
     end
     local inventorySize = zombieEngineer.inventory and #zombieEngineer.inventory or 0
     local corpseDirection = DirectionUtils.OrientationToNearestDirection(entity.orientation)

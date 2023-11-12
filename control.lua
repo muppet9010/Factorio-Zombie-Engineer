@@ -19,9 +19,7 @@ end
 
 ---@param event EventData.on_runtime_mod_setting_changed|nil # nil value when called from OnStartup (on_init & on_configuration_changed)
 local function OnSettingChanged(event)
-    --if event == nil or event.setting == "xxxxx" then
-    --	local x = tonumber(settings.global["xxxxx"].value)
-    --end
+    ZombieEngineerManager.OnSettingChanged(event)
 end
 
 local function OnStartup()

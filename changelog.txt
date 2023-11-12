@@ -4,6 +4,7 @@ Date: 2023-11-XXXX
   Features:
     - Announce when a player is killed by another player's zombie.
     - Announce the player who kills another player's zombie.
+    - Generated zombies from a grave are named randomly from a mod setting list (when its not blank).
   Changes:
   Bugfixes:
   Info:

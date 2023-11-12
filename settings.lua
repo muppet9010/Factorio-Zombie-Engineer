@@ -12,15 +12,15 @@ data:extend(
     }
 )
 
---[[data:extend(
+data:extend(
     {
         {
-            name = "XXXX",
-            type = "bool-setting",
-            default_value = true,
+            name = "zombie_engineer-zombie_names",
+            type = "string-setting",
+            default_value = "",
+            allow_blank = true,
             setting_type = "runtime-global",
             order = "1001"
         }
     }
 )
-]]
