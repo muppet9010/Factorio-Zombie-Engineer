@@ -1,6 +1,7 @@
 local ZombieEngineerManager = require("scripts.zombie-engineer-manager")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local CommandsUtils = require("utility.helper-utils.commands-utils")
+local PlayerLines = require("utility.manager-libraries.player-lines")
 
 local Control = {} ---@class Class_Control
 
@@ -40,6 +41,7 @@ script.on_load(OnLoad)
 
 script.on_nth_tick(10, ZombieEngineerManager.ManageAllZombieEngineers)
 EventScheduler.RegisterScheduler()
+PlayerLines.RegisterPlayerAlerts()
 
 -- Mod wide function interface table creation. Means EmmyLua can support it.
 MOD = MOD or {} ---@class MOD

@@ -1,3 +1,8 @@
+Bugs/Next
+---------
+- Move the zombie pathfinder stuff to its own class file. As the main zombie engineer one is getting a bit full with the other random stuff.
+
+
 Required
 --------
 + When player dies a zombie is created. The zombie gets the players inventory (meaning their corpse vanishes).
@@ -26,7 +31,7 @@ Nice To Have
 + Name the zombie after the player and their death number.
 + When a player is killed by a zombie have an alert text and link to location saying who was killed by what zombie. As default Factorio would just list it as killed by zombie entity name.
 + When a player kills a zombie, add an announcement that they have put the source player to rest.
-- Add a line from the player to their zombie/it's corpse if it dies. Include a per player mod setting to control if this is shown or not. Also the line's thickness.
++ Add a line from the player to their zombie/it's corpse if it dies. Include a per player mod setting to control if this is shown or not. Also the line's thickness.
 + Name a grave generated zombie after a list of names. Have a mod setting to define these for now.
 - Add graphical effects to zombie so it stands out. Maybe odd colors, cloud of effects around it, etc.
 - Zombies able able to use player weapons to shoot other players, vehicles, combat robots? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences. When shooting the zombie should have a temporary speed reduction like the player does.

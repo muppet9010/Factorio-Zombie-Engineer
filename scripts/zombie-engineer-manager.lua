@@ -8,6 +8,8 @@ local DirectionUtils = require("utility.helper-utils.direction-utils")
 local EntityUtils = require("utility.helper-utils.entity-utils")
 local EntityTypeGroups = require("utility.lists.entity-type-groups")
 local StringUtils = require("utility.helper-utils.string-utils")
+local LineToBodySettingsValues = require("common.line-to-body-settings-values")
+local PlayerLines = require("utility.manager-libraries.player-lines")
 
 ---@class ZombieEngineer_TestingSettings
 local TestingSettings = {
@@ -118,7 +120,8 @@ end
 
 ---@param event EventData.on_runtime_mod_setting_changed|nil # nil value when called from OnStartup (on_init & on_configuration_changed)
 ZombieEngineerManager.OnSettingChanged = function(event)
-    if event == nil or event.setting == "zombie_engineer-zombie_names" then
+    -- Global zombie names setting updated or map load.
+    if event == nil or (event.setting_type == "runtime-global" and event.setting == "zombie_engineer-zombie_names") then
         local rawSettingString = settings.global["zombie_engineer-zombie_names"].value --[[@as string]]
         rawSettingString = StringUtils.StringTrim(rawSettingString)
         if rawSettingString == "" then
@@ -126,6 +129,11 @@ ZombieEngineerManager.OnSettingChanged = function(event)
         else
             global.ZombieEngineerManager.Settings.zombieNames = StringUtils.SplitStringOnCharactersToList(rawSettingString, ",")
         end
+    end
+
+    -- Per player mod settings for `line to body` changed only.
+    if event ~= nil and event.setting_type == "runtime-per-user" and (event.setting == "zombie_engineer-line_to_body_thickness" or event.setting == "zombie_engineer-line_to_body_color_selection_type" or event.setting == "zombie_engineer-line_to_body_color_selector_value") then
+        ZombieEngineerManager.ReloadPlayerEntityLines(event.player_index)
     end
 end
 
@@ -237,6 +245,10 @@ ZombieEngineerManager.CreateZombie = function(player, player_index, sourceName, 
     if zombieName ~= nil then
         zombieEngineer.zombieName = zombieName
         zombieEngineer.nameRenderId = rendering.draw_text({ text = zombieName, surface = zombieEngineer.surface, target = zombieEngineer.entity, color = zombieEngineer.textColor, target_offset = { 0.0, -2.0 }, scale_with_zoom = true, alignment = "center", vertical_alignment = "middle" })
+    end
+
+    if player ~= nil then
+        ZombieEngineerManager.RecordPlayerEntityLine(zombieEngineer.entity, player, "zombieEngineerEntity_" .. zombieName)
     end
 
     return zombieEngineer
@@ -409,9 +421,7 @@ ZombieEngineerManager.AttackTowardsDistractionTarget = function(zombieEngineer, 
         return
     end
 
-    if zombieEngineer.action == ZOMBIE_ENGINEER_ACTION.findingPath then
-        return
-    end
+    if zombieEngineer.action == ZOMBIE_ENGINEER_ACTION.findingPath then return end
 
     if zombieEngineer.action == ZOMBIE_ENGINEER_ACTION.chasingDistraction then
         -- We have a path here and are doing commands to follow it.
@@ -582,13 +592,17 @@ ZombieEngineerManager.OnEntityDiedZombieEngineer = function(eventData)
     ---@diagnostic disable-next-line: missing-fields # Temporary work around until Factorio docs and FMTK updated to allow per type field specification.
     local zombieCorpse = zombieEngineer.surface.create_entity({ name = "character-corpse", position = entity.position, force = corpseForce, direction = corpseDirection, inventory_size = inventorySize, player_index = playerIndex, player = sourcePlayer })
 
-    if zombieCorpse ~= nil then
-        if inventorySize > 0 then
-            local corpseInventory = zombieCorpse.get_inventory(defines.inventory.character_corpse) ---@cast corpseInventory -nil
-            InventoryUtils.TryMoveInventoriesLuaItemStacks(zombieEngineer.inventory, corpseInventory, true, 100)
-        end
-        zombieCorpse.color = corpseColor
+    if zombieCorpse == nil then
+        LoggingUtils.PrintError("Zombie corpse failed to create. Here: " .. LoggingUtils.MakeGpsRichText_Entity(entity))
+        if global.debugSettings.testing then error("Zombie corpse creation failed") end
+        return
     end
+
+    if inventorySize > 0 then
+        local corpseInventory = zombieCorpse.get_inventory(defines.inventory.character_corpse) ---@cast corpseInventory -nil
+        InventoryUtils.TryMoveInventoriesLuaItemStacks(zombieEngineer.inventory, corpseInventory, true, 100)
+    end
+    zombieCorpse.color = corpseColor
 
     ZombieEngineerManager.ZombieEntityRemoved(zombieEngineer)
 
@@ -600,6 +614,10 @@ ZombieEngineerManager.OnEntityDiedZombieEngineer = function(eventData)
     if zombieKillerPlayer and zombieEngineer.sourcePlayer ~= nil then
         game.print({ "message.zombie_engineer-player_killed_zombie", zombieKillerPlayer.name, zombieEngineer.sourceName })
     end
+
+    if zombieEngineer.sourcePlayer ~= nil then
+        ZombieEngineerManager.RecordPlayerEntityLine(zombieCorpse, zombieEngineer.sourcePlayer, "zombieEngineerCorpse_" .. zombieEngineer.zombieName)
+    end
 end
 
 ---@param zombieEngineer ZombieEngineer
@@ -607,6 +625,56 @@ ZombieEngineerManager.ZombieEntityRemoved = function(zombieEngineer)
     zombieEngineer.state = ZOMBIE_ENGINEER_STATE.dead
     zombieEngineer.entity = nil
     zombieEngineer.unitNumber = nil
+end
+
+--TODO: add easy way to disable this feature as it's new. Maybe run it within safe execution loop?
+---@param targetEntity LuaEntity
+---@param player LuaPlayer
+---@param lineIdName string
+ZombieEngineerManager.RecordPlayerEntityLine = function(targetEntity, player, lineIdName)
+    local playerLineSettings = ZombieEngineerManager.GetPlayersLineModSettings(player, player.index)
+    PlayerLines.AddLineForPlayer(lineIdName, player.surface, player, targetEntity, playerLineSettings.lineColor, playerLineSettings.lineWidth)
+end
+
+---@param playerIndex uint
+ZombieEngineerManager.ReloadPlayerEntityLines = function(playerIndex)
+    local player = game.get_player(playerIndex) ---@cast player -nil
+    local currentPlayerLines = PlayerLines.GetLinesForPlayerIndex(playerIndex)
+    if currentPlayerLines == nil then return end
+
+    for _, currentPlayerLine in pairs(currentPlayerLines) do
+        local playerLineSettings = ZombieEngineerManager.GetPlayersLineModSettings(player, player.index)
+        currentPlayerLine.color = playerLineSettings.lineColor
+        currentPlayerLine.width = playerLineSettings.lineWidth
+        PlayerLines.RefreshPlayerLine(currentPlayerLine.id)
+    end
+end
+
+---@class ZombieEngineer_GetPlayersLineModSettings_Return
+---@field lineWidth float
+---@field lineColor Color
+
+---@param player LuaPlayer
+---@param playerIndex uint
+---@return ZombieEngineer_GetPlayersLineModSettings_Return
+ZombieEngineerManager.GetPlayersLineModSettings = function(player, playerIndex)
+    local playerSettings = settings.get_player_settings(playerIndex)
+
+    local lineColor ---@type Color
+    if playerSettings["zombie_engineer-line_to_body_color_selection_type"].value --[[@as LineToBodySettingsValues_LineColorSelectionType]] == LineToBodySettingsValues.ZOMBIE_ENGINEER_LINE_COLOR_SELECTION_TYPE.player then
+        lineColor = player.color
+    else
+        lineColor = playerSettings["zombie_engineer-line_to_body_color_selector_value"].value --[[@as Color]]
+    end
+
+    local lineWidth = tonumber(playerSettings["zombie_engineer-line_to_body_thickness"].value) --[[@as float]]
+
+    ---@type ZombieEngineer_GetPlayersLineModSettings_Return
+    local playerLineModSettings = {
+        lineWidth = lineWidth,
+        lineColor = lineColor
+    }
+    return playerLineModSettings
 end
 
 return ZombieEngineerManager
