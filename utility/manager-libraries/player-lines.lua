@@ -2,12 +2,14 @@
     Library to support drawing lines from a player to targets.
     This handles the player dying, as when they respawn the line will need drawing again. The player getting in and out of vehicles is handled by Factorio automatically.
     This library is used by calling the RegisterPlayerLines() function once in root of control.lua. With the public functions then being called as required to add and remove lines. Lines to target entities that become invalid (die) will be automatically removed. Lines will only be drawn if the source and target are on the same surface; they will be tracked while the player is on a different surface and XXX when the player returns to that surface.
-    TODO: handle player changing surface.
+    If a player loses/gains a character without dying & re-spawning the lines won't be recreated. The module does handle surfaces correctly for the player, i.e. a player and target on different surfaces won't draw a line, but won't error or remove the line object either. The module does handle players entering and exiting Editor Mode. If both the source and target are teleported to another surface then the line details will update to this new situation.
 --]]
 --
 
-local PlayerLines = {} ---@class Utility_PlayerLines
 local Events = require("utility.manager-libraries.events")
+local LoggingUtils = require("utility.helper-utils.logging-utils")
+
+local PlayerLines = {} ---@class Utility_PlayerLines
 
 ---@class UtilityPlayerLines_PlayerLine # The details of a players line.
 ---@field id UtilityPlayerLines_LineId # Id of the line object.
@@ -30,6 +32,8 @@ local Events = require("utility.manager-libraries.events")
 --- Only needs to be called once by the mod.
 PlayerLines.RegisterPlayerAlerts = function()
     Events.RegisterHandlerEvent(defines.events.on_player_respawned, "PlayerLines._OnPlayerRespawned", PlayerLines._OnPlayerRespawned)
+    Events.RegisterHandlerEvent(defines.events.on_player_changed_surface, "PlayerLines._OnPlayerChangedSurface", PlayerLines._OnPlayerChangedSurface)
+    Events.RegisterHandlerEvent(defines.events.on_player_toggled_map_editor, "PlayerLines._OnPlayerToggledMapEditor", PlayerLines._OnPlayerToggledMapEditor)
 end
 
 --------------------------------------------------------------------------------------------
@@ -138,8 +142,19 @@ end
 
 ---@param eventData EventData.on_player_respawned
 PlayerLines._OnPlayerRespawned = function(eventData)
-    if global.UTILITYPLAYERLINES == nil then return end
-    PlayerLines._RedrawPlayerLines(eventData.player_index)
+    local RealCode = function(eventData)
+        if global.UTILITYPLAYERLINES == nil then return end
+        PlayerLines._RedrawPlayerLines(eventData.player_index)
+    end
+
+    -- FUTURE: run it all in a safety bubble.
+    local errorMessage, fullErrorDetails = LoggingUtils.RunFunctionAndCatchErrors(RealCode, eventData)
+    if errorMessage ~= nil then
+        LoggingUtils.LogPrintError(errorMessage, true)
+    end
+    if fullErrorDetails ~= nil then
+        LoggingUtils.ModLog(fullErrorDetails, false)
+    end
 end
 
 ---@param color Color
@@ -151,6 +166,36 @@ end
 ---@return uint64? lineRenderId
 PlayerLines._DrawLine = function(color, sourceEntity, surface, target, width, visibleToPlayers)
     if width == 0 then return nil end
+
+    local sourceEntity_surface = sourceEntity.surface
+    local targetIsEntity ---@type boolean?
+    local targetEntity_surface ---@type LuaSurface?
+
+    if sourceEntity_surface ~= surface then
+        -- Player's current surface isn't the one the line was created on.
+
+        -- Check for a weird valid edge case where the source and target (entity) have both been moved to a new surface.
+        targetIsEntity = (target["object_name"] ~= nil)
+        if targetIsEntity then targetEntity_surface = target.surface end
+        if not (targetIsEntity and sourceEntity_surface == targetEntity_surface) then
+            -- Just ignore drawing it for now as both the player and target entity haven't moved to a new surface.
+            -- No way to validate if a target map position is relevant on the new surface or not, so assume not.
+            return nil
+        end
+    end
+
+    -- Checks to handle surface mismatch with nice error message, rather than hard crash.
+    if targetIsEntity == nil then targetIsEntity = (target["object_name"] ~= nil) end
+    if targetIsEntity and targetEntity_surface == nil then targetEntity_surface = target.surface end
+    if targetIsEntity and targetEntity_surface ~= surface then
+        -- Is a target entity and not map position.
+        ---@cast target LuaEntity
+        -- Don't log this mismatch as we now handle intentional surface changes for player and target.
+        --LoggingUtils.PrintError("Utility Player-Lines: tried to add a line on a surface different to the target entity. Surface Name: `" .. surface.name .. "`. Target Entity: " .. LoggingUtils.MakeGpsRichText_Entity(target))
+        --LoggingUtils.PrintError("Utility Player-Lines: drawing line aborted between " .. LoggingUtils.MakeGpsRichText_Entity(sourceEntity) " and " .. LoggingUtils.MakeGpsRichText_Entity(target))
+        return nil
+    end ---@cast target LuaEntity|MapPosition
+
     return rendering.draw_line({
         color = color,
         from = sourceEntity,
@@ -188,6 +233,40 @@ PlayerLines._RedrawPlayerLine = function(playerLine, sourceEntity)
             rendering.destroy(playerLine.lineRenderId)
         end
         playerLine.lineRenderId = PlayerLines._DrawLine(playerLine.color, sourceEntity, playerLine.surface, playerLine.target, playerLine.width, { playerLine.playerSource })
+    end
+end
+
+---@param eventData EventData.on_player_changed_surface
+PlayerLines._OnPlayerChangedSurface = function(eventData)
+    local RealCode = function(eventData)
+        if global.UTILITYPLAYERLINES == nil then return end
+        PlayerLines._RedrawPlayerLines(eventData.player_index)
+    end
+
+    -- FUTURE: run it all in a safety bubble.
+    local errorMessage, fullErrorDetails = LoggingUtils.RunFunctionAndCatchErrors(RealCode, eventData)
+    if errorMessage ~= nil then
+        LoggingUtils.LogPrintError(errorMessage, true)
+    end
+    if fullErrorDetails ~= nil then
+        LoggingUtils.ModLog(fullErrorDetails, false)
+    end
+end
+
+---@param eventData EventData.on_player_toggled_map_editor
+PlayerLines._OnPlayerToggledMapEditor = function(eventData)
+    local RealCode = function(eventData)
+        if global.UTILITYPLAYERLINES == nil then return end
+        PlayerLines._RedrawPlayerLines(eventData.player_index)
+    end
+
+    -- FUTURE: run it all in a safety bubble.
+    local errorMessage, fullErrorDetails = LoggingUtils.RunFunctionAndCatchErrors(RealCode, eventData)
+    if errorMessage ~= nil then
+        LoggingUtils.LogPrintError(errorMessage, true)
+    end
+    if fullErrorDetails ~= nil then
+        LoggingUtils.ModLog(fullErrorDetails, false)
     end
 end
 

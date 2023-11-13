@@ -1,6 +1,7 @@
 Bugs/Next
 ---------
 - Move the zombie pathfinder stuff to its own class file. As the main zombie engineer one is getting a bit full with the other random stuff.
+- The player line to body is running in a safety handler of code. So it will just log an error message and continue, rather than hard crash. After it runs ok for a stream remove this safety wrapper. `-- FUTURE: run it all in a safety bubble.`
 
 
 Required

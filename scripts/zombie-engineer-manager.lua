@@ -111,7 +111,7 @@ ZombieEngineerManager.OnStartup = function()
     if global.ZombieEngineerManager.zombieEntityCollisionMask == nil then
         global.ZombieEngineerManager.zombieEntityCollisionMask = game.entity_prototypes["zombie_engineer-zombie_engineer"].collision_mask
     end
-    global.ZombieEngineerManager.playerForces = { game.forces["player"] } -- We might want to add support for more in future, so why not variable it now.
+    global.ZombieEngineerManager.playerForces = { game.forces["player"] }
 
     if global.ZombieEngineerManager.zombieForce == nil then
         global.ZombieEngineerManager.zombieForce = ZombieEngineerManager.CreateZombieForce()
@@ -627,26 +627,47 @@ ZombieEngineerManager.ZombieEntityRemoved = function(zombieEngineer)
     zombieEngineer.unitNumber = nil
 end
 
---TODO: add easy way to disable this feature as it's new. Maybe run it within safe execution loop?
 ---@param targetEntity LuaEntity
 ---@param player LuaPlayer
 ---@param lineIdName string
 ZombieEngineerManager.RecordPlayerEntityLine = function(targetEntity, player, lineIdName)
-    local playerLineSettings = ZombieEngineerManager.GetPlayersLineModSettings(player, player.index)
-    PlayerLines.AddLineForPlayer(lineIdName, player.surface, player, targetEntity, playerLineSettings.lineColor, playerLineSettings.lineWidth)
+    local RealCode = function(targetEntity, player, lineIdName)
+        local playerLineSettings = ZombieEngineerManager.GetPlayersLineModSettings(player, player.index)
+        PlayerLines.AddLineForPlayer(lineIdName, player.surface, player, targetEntity, playerLineSettings.lineColor, playerLineSettings.lineWidth)
+    end
+
+    -- FUTURE: run it all in a safety bubble.
+    local errorMessage, fullErrorDetails = LoggingUtils.RunFunctionAndCatchErrors(RealCode, targetEntity, player, lineIdName)
+    if errorMessage ~= nil then
+        LoggingUtils.LogPrintError(errorMessage, true)
+    end
+    if fullErrorDetails ~= nil then
+        LoggingUtils.ModLog(fullErrorDetails, false)
+    end
 end
 
 ---@param playerIndex uint
 ZombieEngineerManager.ReloadPlayerEntityLines = function(playerIndex)
-    local player = game.get_player(playerIndex) ---@cast player -nil
-    local currentPlayerLines = PlayerLines.GetLinesForPlayerIndex(playerIndex)
-    if currentPlayerLines == nil then return end
+    local RealCode = function(playerIndex)
+        local player = game.get_player(playerIndex) ---@cast player -nil
+        local currentPlayerLines = PlayerLines.GetLinesForPlayerIndex(playerIndex)
+        if currentPlayerLines == nil then return end
 
-    for _, currentPlayerLine in pairs(currentPlayerLines) do
-        local playerLineSettings = ZombieEngineerManager.GetPlayersLineModSettings(player, player.index)
-        currentPlayerLine.color = playerLineSettings.lineColor
-        currentPlayerLine.width = playerLineSettings.lineWidth
-        PlayerLines.RefreshPlayerLine(currentPlayerLine.id)
+        for _, currentPlayerLine in pairs(currentPlayerLines) do
+            local playerLineSettings = ZombieEngineerManager.GetPlayersLineModSettings(player, player.index)
+            currentPlayerLine.color = playerLineSettings.lineColor
+            currentPlayerLine.width = playerLineSettings.lineWidth
+            PlayerLines.RefreshPlayerLine(currentPlayerLine.id)
+        end
+    end
+
+    -- FUTURE: run it all in a safety bubble.
+    local errorMessage, fullErrorDetails = LoggingUtils.RunFunctionAndCatchErrors(RealCode, playerIndex)
+    if errorMessage ~= nil then
+        LoggingUtils.LogPrintError(errorMessage, true)
+    end
+    if fullErrorDetails ~= nil then
+        LoggingUtils.ModLog(fullErrorDetails, false)
     end
 end
 
