@@ -18,6 +18,7 @@
 
 local PositionUtils = require("utility.helper-utils.position-utils")
 local DirectionUtils = require("utility.helper-utils.direction-utils")
+local EntityTypeGroups = require("utility.lists.entity-type-groups")
 
 local PlayerTeleport = {} ---@class Utility_PlayerTeleport
 
@@ -168,7 +169,7 @@ PlayerTeleport.IsTeleportableVehicle = function(vehicle)
         return false
     end
     local vehicle_type = vehicle.type
-    if vehicle_type == "car" or vehicle_type == "spider-vehicle" then
+    if EntityTypeGroups.NonRailVehicles_Dictionary[vehicle_type] ~= nil then
         return true
     else
         return false

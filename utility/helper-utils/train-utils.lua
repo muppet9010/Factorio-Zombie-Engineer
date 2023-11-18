@@ -8,7 +8,9 @@ local PrototypeAttributes = require("utility.functions.prototype-attributes")
 local EntityUtils = require("utility.helper-utils.entity-utils")
 local PositionUtils = require("utility.helper-utils.position-utils")
 local VehicleUtils = require("utility.helper-utils.vehicle-utils")
+local EntityTypeGroups = require("utility.lists.entity-type-groups")
 local math_min, math_max, math_ceil, math_sqrt = math.min, math.max, math.ceil, math.sqrt
+
 
 --- Gets the carriage at the head (leading) the train in its current direction.
 ---
@@ -423,7 +425,7 @@ TrainUtils.DestroyCarriagesOnRailEntity = function(railEntity, killForce, killer
     if not railEntity.can_be_destroyed() then
         local railEntityCollisionBox = PrototypeAttributes.GetAttribute("entity", railEntity.name, "collision_box")
         local positionedCollisionBox = PositionUtils.ApplyBoundingBoxToPosition(railEntity.position, railEntityCollisionBox, railEntity.orientation)
-        local carriagesFound = surface.find_entities_filtered { area = positionedCollisionBox, type = { "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" } }
+        local carriagesFound = surface.find_entities_filtered { area = positionedCollisionBox, type = EntityTypeGroups.AllCarriageTypes_List }
         for _, carriage in pairs(carriagesFound) do
             -- If the carriage is currently not destructible make it so, so we can kill it normally.
             if not carriage.destructible then
@@ -434,7 +436,7 @@ TrainUtils.DestroyCarriagesOnRailEntity = function(railEntity, killForce, killer
         if railEntity.type == "curved-rail" then
             railEntityCollisionBox = PrototypeAttributes.GetAttribute("entity", railEntity.name, "secondary_collision_box")
             positionedCollisionBox = PositionUtils.ApplyBoundingBoxToPosition(railEntity.position, railEntityCollisionBox, railEntity.orientation)
-            carriagesFound = surface.find_entities_filtered { area = positionedCollisionBox, type = { "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" } }
+            carriagesFound = surface.find_entities_filtered { area = positionedCollisionBox, type = EntityTypeGroups.AllCarriageTypes_List }
             for _, carriage in pairs(carriagesFound) do
                 -- If the carriage is currently not destructible make it so, so we can kill it normally.
                 if not carriage.destructible then
@@ -457,7 +459,7 @@ TrainUtils.MineCarriagesOnRailEntity = function(railEntity, surface, ignoreMinab
     if not railEntity.can_be_destroyed() then
         local railEntityCollisionBox = PrototypeAttributes.GetAttribute("entity", railEntity.name, "collision_box")
         local positionedCollisionBox = PositionUtils.ApplyBoundingBoxToPosition(railEntity.position, railEntityCollisionBox, railEntity.orientation)
-        local carriagesFound = surface.find_entities_filtered { area = positionedCollisionBox, type = { "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" } }
+        local carriagesFound = surface.find_entities_filtered { area = positionedCollisionBox, type = EntityTypeGroups.AllCarriageTypes_List }
         for _, carriage in pairs(carriagesFound) do
             -- If stopTrain is enabled and the carriage is currently moving stop its train.
             if stopTrain then
@@ -471,7 +473,7 @@ TrainUtils.MineCarriagesOnRailEntity = function(railEntity, surface, ignoreMinab
         if railEntity.type == "curved-rail" then
             railEntityCollisionBox = PrototypeAttributes.GetAttribute("entity", railEntity.name, "secondary_collision_box")
             positionedCollisionBox = PositionUtils.ApplyBoundingBoxToPosition(railEntity.position, railEntityCollisionBox, railEntity.orientation)
-            carriagesFound = surface.find_entities_filtered { area = positionedCollisionBox, type = { "locomotive", "cargo-wagon", "fluid-wagon", "artillery-wagon" } }
+            carriagesFound = surface.find_entities_filtered { area = positionedCollisionBox, type = EntityTypeGroups.AllCarriageTypes_List }
             for _, carriage in pairs(carriagesFound) do
                 -- If stopTrain is enabled and the carriage is currently moving stop its train.
                 if stopTrain then

@@ -1,12 +1,23 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.0.2
-Date: 2023-10-29
+Version: 1.0.3
+Date: 2023-11-XXXX
   Features:
+    - Announce when a player is killed by another player's zombie.
+    - Announce the player who kills another player's zombie.
+    - Generated zombies from a grave are named randomly from a mod setting list (when its not blank).
+    - When a player dies and creates a zombie, or their zombie dies and creates their corpse (with players items in) draw a line from the player to it. Includes per player mod settings to control the line.
   Changes:
-    - Zombies are not shootable by turrets, but will still be auto targetted by players, other units, combat robots and vehicles.
+  Bugfixes:
+  Info:
+---------------------------------------------------------------------------------------------------
+Version: 1.0.2
+Date: 2023-11-04
+  Features:
+    - Zombies get name tags if they are a risen player's corpse.
+  Changes:
+    - Zombies are not shootable by turrets, but will still be auto targeted by players, other units, combat robots and vehicles.
     - Zombies are immune to poison (don't breath air).
     - Zombies are immune to slowdown capsules. Had to make the slowdown capsule explicitly affect all other units, vehicles and characters.
-    - Zombies get name tags if they are a risen player's corpse.
   Bugfixes:
   Info:
 ---------------------------------------------------------------------------------------------------
@@ -14,7 +25,7 @@ Version: 1.0.1
 Date: 2023-10-28
   Features:
   Changes:
-    - Zombies stat balancing.
+    - Zombies balancing.
   Bugfixes:
   Info:
 ---------------------------------------------------------------------------------------------------

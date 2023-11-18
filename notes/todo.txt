@@ -1,3 +1,9 @@
+Bugs/Next
+---------
+- Move the zombie pathfinder stuff to its own class file. As the main zombie engineer one is getting a bit full with the other random stuff.
+- The player line to body is running in a safety handler of code. So it will just log an error message and continue, rather than hard crash. After it runs ok for a stream remove this safety wrapper. `-- FUTURE: run it all in a safety bubble.`
+
+
 Required
 --------
 + When player dies a zombie is created. The zombie gets the players inventory (meaning their corpse vanishes).
@@ -16,6 +22,7 @@ Required
 + Main zombie logic runs in an error catching manner. This may lead to broken zombies and error spam until the offending zombie is removed via Editor. But it will stop hard errors from crashing the server. Suitable in this case as the state of the zombie doesn't really matter to the wider play-through.
 - Test the various error messages are reached and in non-testing mode don't raise any hard errors in-game.
 - Try doing a STOP command on a zombie for infinite time. See if that makes HasCommand() return negative. Might be better also than checking for the wander state.
+- Add a thumbnail to the mod.
 
 
 
@@ -23,12 +30,13 @@ Nice To Have
 ------------
 - Equip the players inventory for passive stuff to be active, e.g. power armor, legs, shields, regular armor resistances.
 + Name the zombie after the player and their death number.
-- When a player is killed by a zombie have an alert text and link to location saying who was killed by what zombie. As default Factorio would just list it as killed by zombie entity name.
-- Name a grave generated zombie after a list of names. Have a mod setting to define these for now.
++ When a player is killed by a zombie have an alert text and link to location saying who was killed by what zombie. As default Factorio would just list it as killed by zombie entity name.
++ When a player kills a zombie, add an announcement that they have put the source player to rest.
++ Add a line from the player to their zombie/it's corpse if it dies. Include a per player mod setting to control if this is shown or not. Also the line's thickness.
++ Name a grave generated zombie after a list of names. Have a mod setting to define these for now.
 - Add graphical effects to zombie so it stands out. Maybe odd colors, cloud of effects around it, etc.
-- A zombie is friendly to biters, never destroying their stuff. Need to check how we path for this one.
-- Zombies able to use player weapons to shoot other players and vehicles? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences.
-- Zombies generate slow down and poison effects around them when hurt. Not constantly as that would kill trees and affect biters badly.
+- Zombies able able to use player weapons to shoot other players, vehicles, combat robots? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences. When shooting the zombie should have a temporary speed reduction like the player does.
+- Zombie's generate slow down and poison effects around them when hurt. Not constantly as that would kill trees and affect biters badly.
 - It should take a little bit of time for a player's corpse to turn into a Zombie. If other players remove all of the items from it before then, then no zombie is created. They are deemed to have dealt with the corpse.
 - Add mod settings for:
     - Zombie health, speed and damage attack.
@@ -39,24 +47,23 @@ Nice To Have
     - Player detection range for a zombie.
     - Enable/Disable gravestones (default to on).
     - Probability of gravestone spawning a zombie.
-- When a player kills a zombie, add an announcement that they have put the source player to rest. Also track how many zombies each player has killed internally (use o this is a future thing).
-+ Zombie should be immune to poison and poison capsules.
-- Zombie should be immune to static discharge defence.
++ Zombie should be immune to poison and slowdown capsules.
 - When a zombie arises from a killed player or a gravestone have some graphical niceties.
 - Add effects when a gravestone is destroyed.
-- Add a line from the player to their zombie/its corpse if it dies.
-- When a zombie with no player dies have it colored the generic zombie color. This will need a new corpse prototype to hard code the color there. Also name it as a zombie corpse, vs a player corpse. I think this will need/be cleanest if the default zombie color was set in the zombie prototype, but still let the player color overwrite it if there was a player source, not sure if this is possible, so might need to duplicate the default zombie color at data and runtime stages.
-- When a non-player zombie with no inventory dies have it create a regular corpse, not a character corpse. This can always be colored the as the generic zombie color.
+- When a zombie with no player dies have its corpse colored the generic zombie color. As at present its the generic player character (orange) color. This will need a new corpse prototype to hard code the color there. Also name it as a zombie corpse, vs a player corpse. I think this will need/be cleanest if the default zombie color was set in the zombie prototype, but will still need to let the player color overwrite it if there was a player source. Not sure if this is possible, so might need to duplicate the default zombie color at data and runtime stages or something odd to handle all the variations and not upset base game.
+- When a non-player zombie with no inventory dies have it create a regular corpse, not a character corpse. This can always be colored the same as the generic zombie color.
+- If the "Doing Things By Hand" mod is present then check player's speed boost and apply this to Zombie's speed.
 
 
 
 Unknowns / Undecided
 --------------------
-- When a player is controlling a vehicle should it automatically target the zombie. A player on foot does, a vehicle with no player doesn't. This may not be configurable independently in the end anyways. See when we get there.
-- If a Zombie kills a player what should happen. Either a new zombie appears or we could heal/level up the victorious zombie.
+- If a Zombie kills a player what should happen. Either a new zombie appears and/or we could heal up and/or level up the victorious zombie.
 - If a zombie is unable to reach a player for too long it should attack nearest player buildings. Effectively you can't just kite one forever or bounce them between 2 players going in and out of detection range.
-- Should zombies have tougher versions that scale with evolution?
-- At present graves are only destroyable (like biter eggs), should they be minable instead?
+- Should zombies have tougher versions that scale with evolution? Or maybe give them bonuses somehow? Quite possibly the other features will make up for this for player death zombies.
+- At present graves are only destroyable (like biter eggs), should they be minable instead/as well?
+- Should zombies be immune to static discharge defence?
+- Zombies get faster at night time?
 
 
 
@@ -68,7 +75,7 @@ Future Ideas
 - Add remote interface to create zombie at arbitrary location and source player. Allow specifying equipment to give the zombie.
 - Use the data on how many zombies a player has killed for some interesting thing?
 - Support the standard player colors for Zombies. As can't directly color them, would need different prototypes for each color. This would have downsides in-game:
-    - Kill lists would show different counts for each color. This could possibly be handled by making the entities not directly count and instead adding the kill via script reaction though the LuaFlowStatistics.
+    - Kill lists would show different counts for each color. This could possibly be handled by making the entities not directly count and instead adding the kill via script reaction though the LuaFlowStatistics. This needs to be looked into, as there may be an in-game way to define a standard killed entity.
 - Review known compatibility list and see what things we should start to handle.
 - Add an interface to allow adding of random zombie names. So that they can be added from twitch chat somehow. Maybe include a way to clear the list as well. So that we can push the current twitch viewer names in as available options only.
 

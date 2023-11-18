@@ -58,7 +58,7 @@ local zombieEngineer = {
         animation = meleeAttackAnimation,
         range_mode = "bounding-box-to-bounding-box"
     },
-    vision_distance = 20, -- Zombies won't ever auto target anything. -- TODO
+    vision_distance = 20, -- Zombies won't ever auto target anything. -- FUTURE ZOMBIE PATHING
     movement_speed = 0.05,
     distance_per_frame = characterPrototypeReference.distance_per_frame,
     pollution_to_join_attack = 0,
