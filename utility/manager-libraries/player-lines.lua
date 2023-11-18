@@ -215,6 +215,7 @@ PlayerLines._RedrawPlayerLines = function(playerIndex)
     if sourceEntity == nil then return end
 
     local playerLines = global.UTILITYPLAYERLINES.playersLines[playerIndex]
+    if playerLines == nil then return end
     for _, playerLine in pairs(playerLines) do
         PlayerLines._RedrawPlayerLine(playerLine, sourceEntity)
     end

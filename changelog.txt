@@ -1,6 +1,14 @@
 ---------------------------------------------------------------------------------------------------
-Version: 1.0.3
+Version: 1.0.4
 Date: 2023-11-XXXX
+  Features:
+  Changes:
+  Bugfixes:
+    - Fix error for when redrawing Player Lines were requested for a player who had never had a line. Weird existing game edge case.
+  Info:
+---------------------------------------------------------------------------------------------------
+Version: 1.0.3
+Date: 2023-11-18
   Features:
     - Announce when a player is killed by another player's zombie.
     - Announce the player who kills another player's zombie.
