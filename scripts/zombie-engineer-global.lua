@@ -3,8 +3,8 @@ local ZombieEngineerGlobal = {} ---@class Class_ZombieEngineerGlobal
 ZombieEngineerGlobal.CreateGlobals = function()
     global.ZombieEngineerGlobal = global.ZombieEngineerGlobal or {} ---@class Global_ZombieEngineerGlobal
 
-    global.ZombieEngineerGlobal.zombiePathingCollisionMask = global.ZombieEngineerGlobal.zombiePathingCollisionMask ---@type data.CollisionMask # Obtained as part of OnStartup if required.
-    global.ZombieEngineerGlobal.zombieEntityCollisionMask = global.ZombieEngineerGlobal.zombieEntityCollisionMask ---@type data.CollisionMask # Obtained as part of OnStartup if required.
+    global.ZombieEngineerGlobal.zombiePathingCollisionMask = global.ZombieEngineerGlobal.zombiePathingCollisionMask ---@type data.CollisionMask # Obtained as part of OnStartup.
+    global.ZombieEngineerGlobal.zombieEntityCollisionMask = global.ZombieEngineerGlobal.zombieEntityCollisionMask ---@type data.CollisionMask # Obtained as part of OnStartup.
 
     global.ZombieEngineerGlobal.zombieForce = global.ZombieEngineerGlobal.zombieForce ---@type LuaForce # Created as part of OnStartup if required.
     global.ZombieEngineerGlobal.playerForces = global.ZombieEngineerGlobal.playerForces ---@type LuaForce[]
@@ -19,12 +19,9 @@ ZombieEngineerGlobal.OnLoad = function()
 end
 
 ZombieEngineerGlobal.OnStartup = function()
-    if global.ZombieEngineerGlobal.zombiePathingCollisionMask == nil then
-        global.ZombieEngineerGlobal.zombiePathingCollisionMask = game.entity_prototypes["zombie_engineer-zombie_engineer_path_collision_layer"].collision_mask
-    end
-    if global.ZombieEngineerGlobal.zombieEntityCollisionMask == nil then
-        global.ZombieEngineerGlobal.zombieEntityCollisionMask = game.entity_prototypes["zombie_engineer-zombie_engineer"].collision_mask
-    end
+    -- Can't hardcode these, so just always obtain them from the game state.
+    global.ZombieEngineerGlobal.zombiePathingCollisionMask = game.entity_prototypes["zombie_engineer-zombie_engineer_path_collision_layer"].collision_mask
+    global.ZombieEngineerGlobal.zombieEntityCollisionMask = game.entity_prototypes["zombie_engineer-zombie_engineer"].collision_mask
 
     global.ZombieEngineerGlobal.playerForces = { game.forces["player"] }
     if global.ZombieEngineerGlobal.zombieForce == nil then

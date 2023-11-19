@@ -1,3 +1,4 @@
+local ZombieEngineerGlobal = require("scripts.zombie-engineer-global")
 local ZombieEngineerManager = require("scripts.zombie-engineer-manager")
 local ZombieEngineerCreation = require("scripts.zombie-engineer-creation")
 local ZombieEngineerDeath = require("scripts.zombie-engineer-death")
@@ -9,6 +10,7 @@ local PlayerLines = require("utility.manager-libraries.player-lines")
 local Control = {} ---@class Class_Control
 
 local function CreateGlobals()
+    ZombieEngineerGlobal.CreateGlobals()
     ZombieEngineerManager.CreateGlobals()
     ZombieEngineerCreation.CreateGlobals()
     ZombieEngineerDeath.CreateGlobals()
@@ -21,6 +23,7 @@ local function OnLoad()
         CommandsUtils.Register("zombie-engineer-call-on-startup", "Only intended for development and testing, likely will break things in a real game.", Control.CallOnStartupCommand, true)
     end
 
+    ZombieEngineerGlobal.OnLoad()
     ZombieEngineerManager.OnLoad()
     ZombieEngineerCreation.OnLoad()
     ZombieEngineerDeath.OnLoad()
@@ -29,6 +32,7 @@ end
 
 ---@param event EventData.on_runtime_mod_setting_changed|nil # nil value when called from OnStartup (on_init & on_configuration_changed)
 local function OnSettingChanged(event)
+    ZombieEngineerGlobal.OnSettingChanged(event)
     ZombieEngineerManager.OnSettingChanged(event)
     ZombieEngineerCreation.OnSettingChanged(event)
     ZombieEngineerDeath.OnSettingChanged(event)
@@ -43,6 +47,7 @@ local function OnStartup()
     OnLoad()
     OnSettingChanged(nil)
 
+    ZombieEngineerGlobal.OnStartup()
     ZombieEngineerManager.OnStartup()
     ZombieEngineerCreation.OnStartup()
     ZombieEngineerDeath.OnStartup()

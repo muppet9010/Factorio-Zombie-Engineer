@@ -96,8 +96,8 @@ ZombieEngineerCreation.CreateZombie = function(player, player_index, sourceName,
     zombieEngineer.state = MOD.Interfaces.ZombieEngineerManager.Enums.ZOMBIE_ENGINEER_STATE.alive
     zombieEngineer.objective = MOD.Interfaces.ZombieEngineerManager.Enums.ZOMBIE_ENGINEER_OBJECTIVE.movingToSpawn
     zombieEngineer.action = MOD.Interfaces.ZombieEngineerManager.Enums.ZOMBIE_ENGINEER_ACTION.idle
-    zombieEngineer.entityColor = entityColor or global.ZombieEngineerManager.Settings.zombieEntityColor
-    zombieEngineer.textColor = textColor or global.ZombieEngineerManager.Settings.zombieTextColor
+    zombieEngineer.entityColor = entityColor or global.ZombieEngineerGlobal.Settings.zombieEntityColor
+    zombieEngineer.textColor = textColor or global.ZombieEngineerGlobal.Settings.zombieTextColor
 
     -- If there's a corpse position then look for this player's current corpse there, then take the items from it.
     if player ~= nil and corpsePosition ~= nil then
