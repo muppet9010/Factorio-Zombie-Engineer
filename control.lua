@@ -1,4 +1,7 @@
 local ZombieEngineerManager = require("scripts.zombie-engineer-manager")
+local ZombieEngineerCreation = require("scripts.zombie-engineer-creation")
+local ZombieEngineerDeath = require("scripts.zombie-engineer-death")
+local ZombieEngineerPlayerLines = require("scripts.zombie-engineer-player-lines")
 local EventScheduler = require("utility.manager-libraries.event-scheduler")
 local CommandsUtils = require("utility.helper-utils.commands-utils")
 local PlayerLines = require("utility.manager-libraries.player-lines")
@@ -7,6 +10,9 @@ local Control = {} ---@class Class_Control
 
 local function CreateGlobals()
     ZombieEngineerManager.CreateGlobals()
+    ZombieEngineerCreation.CreateGlobals()
+    ZombieEngineerDeath.CreateGlobals()
+    ZombieEngineerPlayerLines.CreateGlobals()
 end
 
 local function OnLoad()
@@ -16,11 +22,17 @@ local function OnLoad()
     end
 
     ZombieEngineerManager.OnLoad()
+    ZombieEngineerCreation.OnLoad()
+    ZombieEngineerDeath.OnLoad()
+    ZombieEngineerPlayerLines.OnLoad()
 end
 
 ---@param event EventData.on_runtime_mod_setting_changed|nil # nil value when called from OnStartup (on_init & on_configuration_changed)
 local function OnSettingChanged(event)
     ZombieEngineerManager.OnSettingChanged(event)
+    ZombieEngineerCreation.OnSettingChanged(event)
+    ZombieEngineerDeath.OnSettingChanged(event)
+    ZombieEngineerPlayerLines.OnSettingChanged(event)
 end
 
 local function OnStartup()
@@ -32,6 +44,9 @@ local function OnStartup()
     OnSettingChanged(nil)
 
     ZombieEngineerManager.OnStartup()
+    ZombieEngineerCreation.OnStartup()
+    ZombieEngineerDeath.OnStartup()
+    ZombieEngineerPlayerLines.OnStartup()
 end
 
 script.on_init(OnStartup)
@@ -46,12 +61,6 @@ PlayerLines.RegisterPlayerAlerts()
 -- Mod wide function interface table creation. Means EmmyLua can support it.
 MOD = MOD or {} ---@class MOD
 MOD.Interfaces = MOD.Interfaces or {} ---@class MOD_InternalInterfaces
---[[
-    Populate and use from within module's OnLoad() functions with simple table reference structures, i.e:
-        MOD.Interfaces.Tunnel = MOD.Interfaces.Tunnel or {} ---@class InternalInterfaces_XXXXXX
-        MOD.Interfaces.Tunnel.CompleteTunnel = Tunnel.CompleteTunnel
---]]
---
 
 --- A debug command to reload all the startup globals and actions on an existing save. Only intended for development and testing, likely will break things in a real game.
 Control.CallOnStartupCommand = function()

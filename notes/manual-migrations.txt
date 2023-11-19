@@ -37,4 +37,4 @@ This will set the death count in the zombie mod for this Player Index to the pro
 /sc __zombie_engineer__
 local playerIndex = 1
 local deathCount = 3
-global.ZombieEngineerManager.playerDeathCounts[playerIndex] = deathCount
+global.ZombieEngineerCreation.playerDeathCounts[playerIndex] = deathCount
