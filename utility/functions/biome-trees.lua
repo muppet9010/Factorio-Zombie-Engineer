@@ -440,10 +440,12 @@ BiomeTrees._GetTreeData = function()
 
     for _, prototype in pairs(treePrototypes) do
         local autoplace ---@type AutoplaceSpecificationPeak?
-        for _, peak in pairs(prototype.autoplace_specification.peaks) do
-            if peak.temperature_optimal ~= nil or peak[moistureRangeAttributeNames.optimal] ~= nil then
-                autoplace = peak
-                break
+        if (prototype.autoplace_specification.peaks ~= nil) then
+            for _, peak in pairs(prototype.autoplace_specification.peaks) do
+                if peak.temperature_optimal ~= nil or peak[moistureRangeAttributeNames.optimal] ~= nil then
+                    autoplace = peak
+                    break
+                end
             end
         end
 
