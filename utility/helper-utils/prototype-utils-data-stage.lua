@@ -310,4 +310,36 @@ PrototypeUtils.CreateWaterPlacementTestEntityPrototype = function(entityToClone,
     return PrototypeUtils.CreatePlacementTestEntityPrototype(entityToClone, newEntityName, subgroup, { "ground-tile", "colliding-with-tiles-only" })
 end
 
+--- Get a reference to the appropriate animation for the desired armor type from the CharacterPrototype (not a copy of data).
+---@param characterPrototype data.CharacterPrototype
+---@param armorName string|nil # Pass in nil if you want the non armored version. This matches how the animations to armor types are defined in the CharacterPrototype.
+---@return data.CharacterArmorAnimation characterArmorAnimation
+PrototypeUtils.GetArmorSpecificAnimationFromCharacterPrototype = function(characterPrototype, armorName)
+    local defaultArmorAnimation ---@type data.CharacterArmorAnimation
+    for _, armorAnimation in pairs(characterPrototype.animations) do
+        if armorName == nil then
+            if armorAnimation.armors == nil then
+                return armorAnimation
+            end
+        else
+            -- We are looking for an armor specific animation.
+            if armorAnimation.armors ~= nil then
+                for _, armorAnimation_armorName in pairs(armorAnimation.armors) do
+                    if armorName == armorAnimation_armorName then
+                        return armorAnimation
+                    end
+                end
+            else
+                -- This is the animation used when no specific armor name matches.
+                defaultArmorAnimation = armorAnimation
+            end
+        end
+    end
+    if armorName ~= nil and defaultArmorAnimation ~= nil then
+        -- There wasn't a specific match for our armor name, so use the no armor animation as one was found.
+        return defaultArmorAnimation
+    end
+    error("Requested armorName doesn't have a graphical animation.")
+end
+
 return PrototypeUtils

@@ -106,7 +106,7 @@ end
 
 ---@param eventData NthTickEventData
 ZombieEngineerManager.ManageAllZombieEngineers = function(eventData)
-    if 1 == 1 then return end -- FUTURE ZOMBIE PATHING: make it use biter pathing.
+    if 1 == 1 then return end -- FUTURE ZOMBIE PATHING: as its use biter pathing just skip this management entirely.
 
     local currentTick = eventData.tick
 

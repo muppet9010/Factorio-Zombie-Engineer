@@ -1,4 +1,7 @@
-local TableUtils = require('utility.helper-utils.table-utils')
+-- Create the initial no-armor zombie engineer. We create the armored versions later once other mods have added/changed armors in the game.
+
+local TableUtils = require("utility.helper-utils.table-utils")
+local PrototypeUtils = require("utility.helper-utils.prototype-utils-data-stage")
 
 local characterPrototypeReference = data.raw["character"]["character"]
 
@@ -58,42 +61,15 @@ local zombieEngineer = {
         animation = meleeAttackAnimation,
         range_mode = "bounding-box-to-bounding-box"
     },
-    vision_distance = 20, -- Zombies won't ever auto target anything. -- FUTURE ZOMBIE PATHING
+    vision_distance = 20, -- Zombies won't ever auto target anything. (should be 0) -- FUTURE ZOMBIE PATHING
     movement_speed = 0.05,
     distance_per_frame = characterPrototypeReference.distance_per_frame,
     pollution_to_join_attack = 0,
     distraction_cooldown = 0,
-    run_animation = TableUtils.DeepCopy(characterPrototypeReference.animations[1].running), -- Copy the no armor animations.
+    run_animation = TableUtils.DeepCopy(PrototypeUtils.GetArmorSpecificAnimationFromCharacterPrototype(characterPrototypeReference, nil).running), -- Copy of the no armor run animation. Use a copy so that any changes to values don't cross contaminate.
     has_belt_immunity = true,
     affected_by_tiles = true,
     ai_settings = { allow_try_return_to_spawner = false, destroy_when_commands_fail = false, do_separation = false },
 }
-
----@diagnostic disable: missing-fields # Temporary work around until Factorio docs fix this API doc. Logged here: https://forums.factorio.com/viewtopic.php?f=233&t=109364
--- Removed as was too hard at start of game and should make zombie variations for armor levels (nice to have).
---[[zombieEngineer.resistances =
-{
-    {
-        type = "physical",
-        decrease = 6,
-        percent = 30
-    },
-    {
-        type = "explosion",
-        decrease = 20,
-        percent = 30
-    },
-    {
-        type = "acid",
-        decrease = 0,
-        percent = 40
-    },
-    {
-        type = "fire",
-        decrease = 0,
-        percent = 30
-    }
-}]]
----@diagnostic enable: missing-fields
 
 data:extend({ zombieEngineer })

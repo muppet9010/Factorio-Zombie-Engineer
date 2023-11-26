@@ -2,6 +2,7 @@
 Version: 1.0.4
 Date: 2023-11-XXXX
   Features:
+    - Zombies arising from player deaths will be wearing the player's armor (resistances).
   Changes:
   Bugfixes:
     - Fix error for when redrawing Player Lines were requested for a player who had never had a line. Weird existing game edge case.

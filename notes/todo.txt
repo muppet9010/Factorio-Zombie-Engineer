@@ -8,7 +8,7 @@ Required
 --------
 + When player dies a zombie is created. The zombie gets the players inventory (meaning their corpse vanishes).
 + A zombie will have high health, be slow, and have a very high damage attack.
-+ A zombie will be a `unit` and given explicit direct commands. It won't have any default behavior or reactions. We can't use generic behaviours, but should be able to do desired effect via explicit commands.
++ A zombie will be a `unit` and given explicit direct commands. It won't have any default behavior or reactions. We can't use generic behaviors, but should be able to do desired effect via explicit commands.
 - A zombie should move towards the nearest player if they are within X distance. This will need regular updating to both handle players running away fast (e.g. trains) and if the player moves the zombie will need to re-path towards their new position.
 - A zombie should move towards the dead player's spawn if there is no near by player to target.
 - If a zombie reaches within X distance of spawn it should then just target random player entities until a player comes within the detection range.
@@ -26,7 +26,8 @@ Required
 
 Nice To Have
 ------------
-- Equip the players inventory for passive stuff to be active, e.g. power armor, legs, shields, regular armor resistances.
++ Equip the players armor for resistances and graphical purposes.
+- Equip the players inventory for passive stuff to be active, e.g. power armor, legs, shields.
 + Name the zombie after the player and their death number.
 + When a player is killed by a zombie have an alert text and link to location saying who was killed by what zombie. As default Factorio would just list it as killed by zombie entity name.
 + When a player kills a zombie, add an announcement that they have put the source player to rest.
@@ -54,6 +55,7 @@ Nice To Have
 - An option to have graves created where players die as a corpse (no items). Allow a way to specify player name to grave graphic name. Also way to specify multiple generic graphics to select from. Basically so in regular use we can have the personalised grave graphics used for those players, with regular graphics for everyone else. Move the JD stream personalised graves to the JD Mod Pack and set the default settings as part of this.
 - Zombies killed by other entities should have this announced. Also players zombies killed in general should have this announced with some explanation text about what they died from.
 - Zombies can drive vehicles, like crazy driver, or maybe in the direction of their path request? Mod setting to disable.
+- Per player map markers for corpses and zombies. Per player mod option for them.
 
 
 
