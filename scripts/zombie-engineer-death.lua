@@ -11,7 +11,12 @@ ZombieEngineerDeath.CreateGlobals = function()
 end
 
 ZombieEngineerDeath.OnLoad = function()
-    Events.RegisterHandlerEvent(defines.events.on_entity_died, "ZombieEngineerDeath.OnEntityDiedZombieEngineer", ZombieEngineerDeath.OnEntityDiedZombieEngineer, { { filter = "name", name = "zombie_engineer-zombie_engineer" } })
+    local onEntityDiedFilters = {} ---@type LuaEntityDiedEventFilter[]
+    for zombieEngineerEntityName in pairs(global.ZombieEngineerGlobal.zombieEngineerEntityNames) do
+        ---@diagnostic disable-next-line: missing-fields # Temporary work around until Factorio docs and FMTK updated to allow per type field specification.
+        onEntityDiedFilters[#onEntityDiedFilters + 1] = { filter = "name", name = zombieEngineerEntityName }
+    end
+    Events.RegisterHandlerEvent(defines.events.on_entity_died, "ZombieEngineerDeath.OnEntityDiedZombieEngineer", ZombieEngineerDeath.OnEntityDiedZombieEngineer, onEntityDiedFilters)
 end
 
 ZombieEngineerDeath.OnStartup = function()
@@ -24,7 +29,7 @@ end
 ---@param eventData EventData.on_entity_died
 ZombieEngineerDeath.OnEntityDiedZombieEngineer = function(eventData)
     local entity = eventData.entity
-    if entity.name ~= "zombie_engineer-zombie_engineer" then return end
+    if global.ZombieEngineerGlobal.zombieEngineerEntityNames[entity.name] == nil then return end
 
     local entity_unitNumber = entity.unit_number ---@cast entity_unitNumber -nil # This is always populated for units.
     local zombieEngineer = global.ZombieEngineerManager.zombieEngineerUnitNumberLookup[entity_unitNumber]

@@ -9,7 +9,9 @@ local noArmorZombieEngineer = data.raw["unit"]["zombie_engineer-zombie_engineer"
 for _, armorPrototype in pairs(data.raw["armor"]) do
     local armoredZombieEngineer = TableUtils.DeepCopy(noArmorZombieEngineer) ---@type data.UnitPrototype
     local armorName = armorPrototype.name
-    armoredZombieEngineer.name = armoredZombieEngineer.name .. "_" .. armorName
+    armoredZombieEngineer.name = armoredZombieEngineer.name .. "-" .. armorName
+    armoredZombieEngineer.localised_name = { "", { "entity-name.zombie_engineer-zombie_engineer" }, " ", { "entity-name.zombie_engineer-zombie_engineer-wearing_armor", armorName } }
+    armoredZombieEngineer.localised_description = { "", { "entity-description.zombie_engineer-zombie_engineer" }, " ", { "entity-description.zombie_engineer-zombie_engineer-wearing_armor", armorName } }
     armoredZombieEngineer.resistances = TableUtils.DeepCopy(armorPrototype.resistances)
     armoredZombieEngineer.run_animation = TableUtils.DeepCopy(PrototypeUtils.GetArmorSpecificAnimationFromCharacterPrototype(characterPrototypeReference, armorName).running) -- Copy of the appropriate armor's run animation. Use a copy so that any changes to values don't cross contaminate.
 

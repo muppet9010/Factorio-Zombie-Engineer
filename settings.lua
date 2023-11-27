@@ -51,7 +51,8 @@ data:extend(
             type = "color-setting",
             default_value = { r = 0, g = 0, b = 0, a = 1 },
             setting_type = "runtime-per-user",
-            order = "1002"
+            order = "1002",
+            localised_description = { "mod-setting-description.zombie_engineer-line_to_body_color_selector_value", { "mod-setting-name.zombie_engineer-line_to_body_color_selection_type" }, { "string-mod-setting.zombie_engineer-line_to_body_color_selection_type-custom" } }
         }
     }
 )

@@ -57,7 +57,6 @@ local graveWithHeadstonePrototype = {
     corpse = "zombie_engineer-grave_with_headstone-corpse"
 }
 
----@diagnostic disable-next-line: missing-fields # Temporary work around until Factorio docs fix this API doc. Logged here: https://forums.factorio.com/viewtopic.php?f=233&t=109364
 graveWithHeadstonePrototype.resistances = {
     {
         type = "fire",
