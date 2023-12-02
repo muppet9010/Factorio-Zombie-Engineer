@@ -20,7 +20,7 @@ Required
 + Make gravestones be auto added to the map. Frequency controlled via mod setting just like Biter Eggs mod is.
 + Make gravestones spawn a zombie when mined/destroyed.
 + Main zombie logic runs in an error catching manner. This may lead to broken zombies and error spam until the offending zombie is removed via Editor. But it will stop hard errors from crashing the server. Suitable in this case as the state of the zombie doesn't really matter to the wider play-through.
-- Add a thumbnail to the mod.
++ Add a thumbnail to the mod.
 
 
 
@@ -34,7 +34,7 @@ Nice To Have
 + Add a line from the player to their zombie/it's corpse if it dies. Include a per player mod setting to control if this is shown or not. Also the line's thickness.
 + Name a grave generated zombie after a list of names. Have a mod setting to define these for now.
 - Add graphical effects to zombie so it stands out. Maybe odd colors, cloud of effects around it, etc.
-- Zombies able able to use player weapons to shoot other players, vehicles, combat robots? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences. When shooting the zombie should have a temporary speed reduction like the player does.
+- Zombies able to use player weapons to shoot other players, vehicles, combat robots? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences. When shooting the zombie should have a temporary speed reduction like the player does.
 - Zombie's generate slow down and poison effects around them when hurt. Not constantly as that would kill trees and affect biters badly.
 - It should take a little bit of time for a player's corpse to turn into a Zombie. If other players remove all of the items from it before then, then no zombie is created. They are deemed to have dealt with the corpse.
 - Add mod settings for:
@@ -47,7 +47,7 @@ Nice To Have
     - Probability of a players death spawning a zombie. If no zombie then still draw line to their regular corpse.
     - Mod option if to announce player deaths and turning into zombies, and also when zombies are killed.
 + Zombie should be immune to poison and slowdown capsules.
-- When a zombie arises from a killed player or a gravestone have some graphical niceties.
+- When a zombie arises from a gravestone have some graphical niceties.
 - Add effects when a gravestone is destroyed.
 - When a zombie with no player dies have its corpse colored the generic zombie color. As at present its the generic player character (orange) color. This will need a new corpse prototype to hard code the color there. Also name it as a zombie corpse, vs a player corpse. I think this will need/be cleanest if the default zombie color was set in the zombie prototype, but will still need to let the player color overwrite it if there was a player source. Not sure if this is possible, so might need to duplicate the default zombie color at data and runtime stages or something odd to handle all the variations and not upset base game.
 - When a non-player zombie with no inventory dies have it create a regular corpse, not a character corpse. This can always be colored the same as the generic zombie color.

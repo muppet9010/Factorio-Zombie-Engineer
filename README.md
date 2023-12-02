@@ -18,6 +18,7 @@ Features
 - The zombie is a slow moving, strong enemy that attacks in melee. Zombies are immune to most effects.
 - Zombies won't be attacked by the player's turret defences. The turret's AI seems to have a flaw distinguishing your concious body from your animated corpses. Players, other units, combat robots and vehicles will auto target them.
 - There are optional graves (mod setting) that can be added to the map that when destroyed will release a zombie.
+- Does NOT include modified graphics.
 
 
 
