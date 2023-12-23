@@ -28,13 +28,15 @@ Nice To Have
 ------------
 + Equip the players armor for resistances and graphical purposes.
 - Equip the players inventory for passive stuff to be active, e.g. power armor, legs, shields.
+- Check the player's and their forces character_running_speed_modifier bonus and apply it to that players zombie. This will handle the running speed from the "Doing Things By Hand" mod. In-game testing implies the game does it as: newBaseSpeed = baseSpeed + (baseSpeed * forceSpeedMod). Then finalSpeed = newBaseSpeed + (newBaseSpeed * playerSpeedMod). As if you set the force speed mod to -1, and have the player speed mod at +1 the player can't move. Implying that base speed + force speed made 0, and then the player speed tried to add 0 * x to this value.
 + Name the zombie after the player and their death number.
 + When a player is killed by a zombie have an alert text and link to location saying who was killed by what zombie. As default Factorio would just list it as killed by zombie entity name.
 + When a player kills a zombie, add an announcement that they have put the source player to rest.
+- Player's zombies killed by other entities should have this announced just like when a player kills a player's zombie. Include what killed them (entity or just damage type).
 + Add a line from the player to their zombie/it's corpse if it dies. Include a per player mod setting to control if this is shown or not. Also the line's thickness.
+- Per player map markers for corpses and zombies. Per player mod option for them.
 + Name a grave generated zombie after a list of names. Have a mod setting to define these for now.
 - Add graphical effects to zombie so it stands out. Maybe odd colors, cloud of effects around it, etc.
-- Zombies able to use player weapons to shoot other players, vehicles, combat robots? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences. When shooting the zombie should have a temporary speed reduction like the player does.
 - Zombie's generate slow down and poison effects around them when hurt. Not constantly as that would kill trees and affect biters badly.
 - It should take a little bit of time for a player's corpse to turn into a Zombie. If other players remove all of the items from it before then, then no zombie is created. They are deemed to have dealt with the corpse.
 - Add mod settings for:
@@ -51,11 +53,7 @@ Nice To Have
 - Add effects when a gravestone is destroyed.
 - When a zombie with no player dies have its corpse colored the generic zombie color. As at present its the generic player character (orange) color. This will need a new corpse prototype to hard code the color there. Also name it as a zombie corpse, vs a player corpse. I think this will need/be cleanest if the default zombie color was set in the zombie prototype, but will still need to let the player color overwrite it if there was a player source. Not sure if this is possible, so might need to duplicate the default zombie color at data and runtime stages or something odd to handle all the variations and not upset base game.
 - When a non-player zombie with no inventory dies have it create a regular corpse, not a character corpse. This can always be colored the same as the generic zombie color.
-- If the "Doing Things By Hand" mod is present then check player's speed boost and apply this to Zombie's speed.
 - An option to have graves created where players die as a corpse (no items). Allow a way to specify player name to grave graphic name. Also way to specify multiple generic graphics to select from. Basically so in regular use we can have the personalised grave graphics used for those players, with regular graphics for everyone else. Move the JD stream personalised graves to the JD Mod Pack and set the default settings as part of this.
-- Zombies killed by other entities should have this announced. Also players zombies killed in general should have this announced with some explanation text about what they died from.
-- Zombies can drive vehicles, like crazy driver, or maybe in the direction of their path request? Mod setting to disable.
-- Per player map markers for corpses and zombies. Per player mod option for them.
 
 
 
@@ -67,6 +65,8 @@ Unknowns / Undecided
 - At present graves are only destroyable (like biter eggs), should they be minable instead/as well?
 - Should zombies be immune to static discharge defence?
 - Zombies get faster at night time?
+- Zombies can drive vehicles, like crazy driver, or maybe in the direction of their path request? Mod setting to disable.
+- Zombies able to use player weapons to shoot other players, vehicles, combat robots? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences. When shooting the zombie should have a temporary speed reduction like the player does.
 
 
 
