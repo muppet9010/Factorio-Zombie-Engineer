@@ -10,6 +10,37 @@ data:extend(
             maximum_value = 100,
             setting_type = "startup",
             order = "1000"
+        },
+        {
+            name = "zombie_engineer-zombie_unarmored_health",
+            type = "int-setting",
+            default_value = 800,
+            minimum_value = 1,
+            setting_type = "startup",
+            order = "1001"
+        },
+        {
+            name = "zombie_engineer-zombie_movement_speed",
+            type = "double-setting",
+            default_value = 0.05,
+            minimum_value = 0.001,
+            setting_type = "startup",
+            order = "1002"
+        },
+        {
+            name = "zombie_engineer-zombie_melee_attack_damage",
+            type = "int-setting",
+            default_value = 100,
+            minimum_value = 1,
+            setting_type = "startup",
+            order = "1003"
+        },
+        {
+            name = "zombie_engineer-turrets_ignore_zombies",
+            type = "bool-setting",
+            default_value = true,
+            setting_type = "startup",
+            order = "1004"
         }
     }
 )

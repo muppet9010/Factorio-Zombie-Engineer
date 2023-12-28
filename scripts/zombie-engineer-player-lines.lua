@@ -86,7 +86,7 @@ ZombieEngineerPlayerLines.GetPlayersLineModSettings = function(player, playerInd
         lineColor = playerSettings["zombie_engineer-line_to_body_color_selector_value"].value --[[@as Color]]
     end
 
-    local lineWidth = tonumber(playerSettings["zombie_engineer-line_to_body_thickness"].value) --[[@as float]]
+    local lineWidth = playerSettings["zombie_engineer-line_to_body_thickness"].value --[[@as float]]
 
     ---@type ZombieEngineer_GetPlayersLineModSettings_Return
     local playerLineModSettings = {

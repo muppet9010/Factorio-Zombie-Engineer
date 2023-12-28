@@ -22,7 +22,7 @@ local zombieEngineer = {
     icon_size = 64,
     icon_mipmaps = 4,
     flags = { "placeable-player", "placeable-enemy", "placeable-off-grid", "not-repairable" },
-    max_health = 800,
+    max_health = settings.startup["zombie_engineer-zombie_unarmored_health"].value --[[@as int]],
     order = "z-a-a",
     subgroup = "enemies",
     healing_per_tick = 0.02, -- Same as big biter - equivalent(ish) hit points.
@@ -53,7 +53,7 @@ local zombieEngineer = {
                     target_effects =
                     {
                         type = "damage",
-                        damage = { amount = 100, type = "physical" }
+                        damage = { amount = settings.startup["zombie_engineer-zombie_melee_attack_damage"].value --[[@as int]], type = "physical" }
                     }
                 }
             }
@@ -62,7 +62,7 @@ local zombieEngineer = {
         range_mode = "bounding-box-to-bounding-box"
     },
     vision_distance = 20, -- Zombies won't ever auto target anything. (should be 0) -- FUTURE ZOMBIE PATHING
-    movement_speed = 0.05,
+    movement_speed = settings.startup["zombie_engineer-zombie_movement_speed"].value --[[@as double]],
     distance_per_frame = characterPrototypeReference.distance_per_frame,
     pollution_to_join_attack = 0,
     distraction_cooldown = 0,

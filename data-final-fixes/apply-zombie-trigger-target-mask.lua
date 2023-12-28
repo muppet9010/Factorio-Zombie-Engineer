@@ -2,28 +2,30 @@
 -- Set player turret types to ignore zombies. This is a best guess.
 --------------------------------------
 
----@param turretPrototype data.TurretPrototype
-local SetTurretToIgnoreZombie = function(turretPrototype)
-    if turretPrototype.ignore_target_mask == nil then
-        turretPrototype.ignore_target_mask = { "zombie_engineer-zombie_engineer" }
-    else
-        turretPrototype.ignore_target_mask[#turretPrototype.ignore_target_mask + 1] = "zombie_engineer-zombie_engineer"
+if settings.startup["zombie_engineer-turrets_ignore_zombies"].value --[[@as boolean]] then
+    ---@param turretPrototype data.TurretPrototype
+    local SetTurretToIgnoreZombie = function(turretPrototype)
+        if turretPrototype.ignore_target_mask == nil then
+            turretPrototype.ignore_target_mask = { "zombie_engineer-zombie_engineer" }
+        else
+            turretPrototype.ignore_target_mask[#turretPrototype.ignore_target_mask + 1] = "zombie_engineer-zombie_engineer"
+        end
     end
-end
 
-for _, prototype in pairs(data.raw["ammo-turret"] --[[@as data.AmmoTurretPrototype[] ]]) do
-    if prototype.subgroup ~= "enemies" then
-        SetTurretToIgnoreZombie(prototype)
+    for _, prototype in pairs(data.raw["ammo-turret"] --[[@as data.AmmoTurretPrototype[] ]]) do
+        if prototype.subgroup ~= "enemies" then
+            SetTurretToIgnoreZombie(prototype)
+        end
     end
-end
-for _, prototype in pairs(data.raw["electric-turret"] --[[@as data.ElectricTurretPrototype[] ]]) do
-    if prototype.subgroup ~= "enemies" then
-        SetTurretToIgnoreZombie(prototype)
+    for _, prototype in pairs(data.raw["electric-turret"] --[[@as data.ElectricTurretPrototype[] ]]) do
+        if prototype.subgroup ~= "enemies" then
+            SetTurretToIgnoreZombie(prototype)
+        end
     end
-end
-for _, prototype in pairs(data.raw["fluid-turret"] --[[@as data.FluidTurretPrototype[] ]]) do
-    if prototype.subgroup ~= "enemies" then
-        SetTurretToIgnoreZombie(prototype)
+    for _, prototype in pairs(data.raw["fluid-turret"] --[[@as data.FluidTurretPrototype[] ]]) do
+        if prototype.subgroup ~= "enemies" then
+            SetTurretToIgnoreZombie(prototype)
+        end
     end
 end
 

@@ -1,6 +1,3 @@
-Then do some of the related mod settings quickly.
-
-
 Bugs/Next
 ---------
 - Try doing a STOP command on a zombie for infinite time. See if that makes HasCommand() return negative. Might be better also than checking for the wander state.
@@ -32,12 +29,12 @@ Required
 Nice To Have
 ------------
 - Add mod settings for these feature areas:
-    - Base values for Zombie health, speed, healing and damage attack.
-    - If the player's defences should auto target a zombie.
+    + Base values for Zombie health, speed, damage attack.
+    + If the player's defences should auto target a zombie.
     - Probability of a grave containing a zombie.
     - Distance from spawn that the zombie starts to rampage.
     - Player detection range for a zombie.
-    - Enable/Disable gravestones for when a player dies(default to on).
+    - Enable/Disable corpse gravestones for when a player dies (default to on).
     - Probability of a players death spawning a zombie. If no zombie then still draw line to their regular corpse.
     - Mod option if to announce player deaths and turning into zombies, and also when zombies are killed.
 + Equip the players armor for resistances and graphical purposes.
@@ -60,7 +57,7 @@ Nice To Have
 - Add effects when a gravestone is destroyed.
 - When a zombie with no player dies have its corpse colored the generic zombie color. As at present its the generic player character (orange) color. This will need a new corpse prototype to hard code the color there. Also name it as a zombie corpse, vs a player corpse. I think this will need/be cleanest if the default zombie color was set in the zombie prototype, but will still need to let the player color overwrite it if there was a player source. Not sure if this is possible, so might need to duplicate the default zombie color at data and runtime stages or something odd to handle all the variations and not upset base game.
 - When a non-player zombie with no inventory dies have it create a regular corpse, not a character corpse. This can always be colored the same as the generic zombie color.
-- An option to have graves created where players die as a corpse (no items). Allow a way to specify player name to grave graphic name. Also way to specify multiple generic graphics to select from. Basically so in regular use we can have the personalised grave graphics used for those players, with regular graphics for everyone else. Move the JD-Plays stream personalised graves to the JD-Plays Mod Pack and set the default settings as part of this.
+- An option to have graves created where players die as a corpse (no items). Allow a way to specify player name to grave graphic name. Also way to specify multiple generic graphics to select from. Basically so in regular use we can have the personalised grave graphics used for those players, with regular graphics for everyone else. Move the JD-Plays stream personalised graves to the JD-Plays Mod Pack and set the default settings as part of this. Only issue here is that they would look the same as the map generated gravestones...
 
 
 Unknowns / Undecided

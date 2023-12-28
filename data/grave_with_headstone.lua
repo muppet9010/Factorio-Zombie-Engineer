@@ -9,7 +9,7 @@ local zombieEngineerPathCollisionLayer = data.raw["simple-entity"]["zombie_engin
 ---@return data.AutoplaceSpecification
 local function MakeAutoplaceSettings(multiplier, order_suffix)
     local name = "enemy-zombie_engineer-grave_with_headstone"
-    multiplier = multiplier * tonumber(settings.startup["zombie_engineer-gravestone_quantity"].value)
+    multiplier = multiplier * settings.startup["zombie_engineer-gravestone_quantity"].value --[[@as double]]
     ---@type data.AutoplacePeak
     local peak = {
         noise_layer = name,
