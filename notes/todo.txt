@@ -1,3 +1,6 @@
+Then do some of the related mod settings quickly.
+
+
 Bugs/Next
 ---------
 - Try doing a STOP command on a zombie for infinite time. See if that makes HasCommand() return negative. Might be better also than checking for the wander state.
