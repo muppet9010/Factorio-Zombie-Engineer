@@ -28,18 +28,17 @@ Required
 
 Nice To Have
 ------------
-- Add mod settings for:
+- Add mod settings for these feature areas:
     - Base values for Zombie health, speed, healing and damage attack.
     - If the player's defences should auto target a zombie.
     - Probability of a grave containing a zombie.
     - Distance from spawn that the zombie starts to rampage.
     - Player detection range for a zombie.
-    - Enable/Disable gravestones (default to on).
+    - Enable/Disable gravestones for when a player dies(default to on).
     - Probability of a players death spawning a zombie. If no zombie then still draw line to their regular corpse.
     - Mod option if to announce player deaths and turning into zombies, and also when zombies are killed.
-- Add distinctive line to "best" zombie/corpse. TBD
-- Add scaling zombie attributes for armor - see new spreadsheet.
 + Equip the players armor for resistances and graphical purposes.
++ Zombie health and resistances scale with armor - see new spreadsheet.
 - Equip the players inventory for passive stuff to be active, e.g. power armor, legs, shields.
 - Check the player's and their forces character_running_speed_modifier bonus and apply it to that players zombie. This will handle the running speed from the "Doing Things By Hand" mod. In-game testing implies the game does it as: newBaseSpeed = baseSpeed + (baseSpeed * forceSpeedMod). Then finalSpeed = newBaseSpeed + (newBaseSpeed * playerSpeedMod). As if you set the force speed mod to -1, and have the player speed mod at +1 the player can't move. Implying that base speed + force speed made 0, and then the player speed tried to add 0 * x to this value.
 + Name the zombie after the player and their death number.
@@ -47,6 +46,7 @@ Nice To Have
 + When a player kills a zombie, add an announcement that they have put the source player to rest.
 - Player's zombies killed by other entities should have this announced just like when a player kills a player's zombie. Include what killed them (entity or just damage type).
 + Add a line from the player to their zombie/it's corpse if it dies. Include a per player mod setting to control if this is shown or not. Also the line's thickness.
+- Add distinctive line to "best" zombie/corpse. TBD
 - Per player map markers for corpses and zombies. Per player mod option for them.
 + Name a grave generated zombie after a list of names. Have a mod setting to define these for now.
 - Add graphical effects to zombie so it stands out. Maybe odd colors, cloud of effects around it, etc.

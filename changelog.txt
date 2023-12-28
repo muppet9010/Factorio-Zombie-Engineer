@@ -3,6 +3,7 @@ Version: 1.0.5
 Date: 2023-12-XXXX
   Features:
   Changes:
+    - Zombie health, damage reductions and healing rate are all defined from the armor type they wear. This is on an offset scale to try and keep some balance between expected player weapons and the armors they may wear. Details in this spreadsheet (scaling damage): https://docs.google.com/spreadsheets/d/1yIMR8AXHv2wZXUDJXdqdJD0vWZkzh4r-hTw64ydeHQ0/edit#gid=1004830454
   Bugfixes:
   Info:
 ---------------------------------------------------------------------------------------------------
