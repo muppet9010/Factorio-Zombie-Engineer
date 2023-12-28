@@ -27,8 +27,5 @@
     "Lua.runtime.special": {
         "__object_name": "type"
     },
-    "Lua.diagnostics.disable": [
-        "lowercase-global"
-    ],
     "Lua.runtime.plugin": "c:/Users/mikeh/AppData/Roaming/Code/User/workspaceStorage/34445a4340c7b2315555c5d263edbf99/justarandomgeek.factoriomod-debug/sumneko-3rd/factorio/plugin.lua"
 }

@@ -168,7 +168,7 @@ ZombieEngineerCreation.CreateZombie = function(player, player_index, sourceName,
         return nil
     end
     ---@diagnostic disable-next-line: missing-fields # Temporary work around until Factorio docs and FMTK updated to allow per type field specification.
-    zombieEngineerEntity = surface.create_entity({ name = zombieEntityName, position = zombieCreatePosition, direction = math.random(0, 7), force = global.ZombieEngineerGlobal.zombieForce })
+    local zombieEngineerEntity = surface.create_entity({ name = zombieEntityName, position = zombieCreatePosition, direction = math.random(0, 7), force = global.ZombieEngineerGlobal.zombieForce })
     if zombieEngineerEntity == nil then
         LoggingUtils.PrintError("Failed to create zombie engineer for '" .. sourceName .. "' at: " .. LoggingUtils.MakeGpsRichText(zombieCreatePosition.x, zombieCreatePosition.y, surface.name))
         return nil
