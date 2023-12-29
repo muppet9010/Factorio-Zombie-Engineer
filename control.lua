@@ -10,6 +10,8 @@ local PlayerLines = require("utility.manager-libraries.player-lines")
 local Control = {} ---@class Class_Control
 
 local function CreateGlobals()
+    Control.CreateDebugGlobals()
+
     ZombieEngineerGlobal.CreateGlobals()
     ZombieEngineerManager.CreateGlobals()
     ZombieEngineerCreation.CreateGlobals()
@@ -18,10 +20,8 @@ local function CreateGlobals()
 end
 
 local function OnLoad()
-    --Any Remote Interface registration calls can go in here or in root of control.lua
-    if global.debugSettings == nil or global.debugSettings.testing == nil or global.debugSettings.testing then
-        CommandsUtils.Register("zombie-engineer-call-on-startup", "Only intended for development and testing, likely will break things in a real game.", Control.CallOnStartupCommand, true)
-    end
+    -- Any Remote Interface or Command registration calls go in here.
+    Control.RegisterDebugCommands()
 
     ZombieEngineerGlobal.OnLoad()
     ZombieEngineerManager.OnLoad()
@@ -40,9 +40,6 @@ local function OnSettingChanged(event)
 end
 
 local function OnStartup()
-    global.debugSettings = global.debugSettings or {}
-    global.debugSettings.testing = false -- Always set for testing manually via console. As if this goes out as changed value in a release it will desync on client connection. Commit: 93abedfd2b8d98a5d0133b74baa96055429548cd
-
     CreateGlobals()
     OnLoad()
     OnSettingChanged(nil)
@@ -66,6 +63,35 @@ PlayerLines.RegisterPlayerAlerts()
 -- Mod wide function interface table creation. Means EmmyLua can support it.
 MOD = MOD or {} ---@class MOD
 MOD.Interfaces = MOD.Interfaces or {} ---@class MOD_InternalInterfaces
+
+
+
+Control.CreateDebugGlobals = function()
+    global.debugSettings = global.debugSettings or {} ---@class Global_DebugSettings
+    global.debugSettings.testing = global.debugSettings.testing or false
+end
+
+--- Called to register the generic mod testing commands. These are safe to be called repeatedly as they overwrite any old instance when required.
+Control.RegisterDebugCommands = function()
+    CommandsUtils.Register("zombie-engineer-toggle-testing", "Only intended for development and testing, likely will break things in a real game.", Control.ToggleTestingMode, true)
+    -- Have to be careful in checking around these global's as in mod update situation the OnStartup() won't have been run yet.
+    if global.debugSettings ~= nil and global.debugSettings.testing == true then
+        CommandsUtils.Register("zombie-engineer-call-on-startup", "Only intended for development and testing, likely will break things in a real game.", Control.CallOnStartupCommand, true)
+    else
+        commands.remove_command("zombie-engineer-call-on-startup")
+    end
+end
+
+--- A debug command to toggle Testing mode on and off in the current save in a safe manner. Only intended for development and testing, likely will break things in a real game.
+Control.ToggleTestingMode = function()
+    if global.debugSettings.testing then
+        global.debugSettings.testing = false
+    else
+        global.debugSettings.testing = true
+    end
+    -- Need to make sure we update the registered commands and the settings carefully. As they can otherwise go out of sync between client and server on mod upgrade and change of values (default value change). Commit: 93abedfd2b8d98a5d0133b74baa96055429548cd
+    Control.RegisterDebugCommands()
+end
 
 --- A debug command to reload all the startup globals and actions on an existing save. Only intended for development and testing, likely will break things in a real game.
 Control.CallOnStartupCommand = function()
