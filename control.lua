@@ -41,7 +41,7 @@ end
 
 local function OnStartup()
     global.debugSettings = global.debugSettings or {}
-    global.debugSettings.testing = false -- TODO
+    global.debugSettings.testing = false -- Always set for testing manually via console. As if this goes out as changed value in a release it will desync on client connection. Commit: 93abedfd2b8d98a5d0133b74baa96055429548cd
 
     CreateGlobals()
     OnLoad()
