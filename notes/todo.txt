@@ -46,8 +46,8 @@ Nice To Have
 + When a player kills a zombie, add an announcement that they have put the source player to rest.
 - Player's zombies killed by other entities should have this announced just like when a player kills a player's zombie. Include what killed them (entity or just damage type).
 + Add a line from the player to their zombie/it's corpse if it dies. Include a per player mod setting to control if this is shown or not. Also the line's thickness.
-- Add distinctive line to "best" zombie/corpse. TBD
-- Per player map markers for corpses and zombies. Per player mod option for them.
+----- NEXT ----- Add distinctive line to "oldest" zombie/corpse. This will be an initial attempt at the "best" corpse. This won't account for corpse decay time vs a live zombie.
+- Per player map markers for corpses and zombies. Per player mod option for them. Maybe just show "Best".
 + Name a grave generated zombie after a list of names. Have a mod setting to define these for now.
 - Add graphical effects to zombie so it stands out. Maybe odd colors, cloud of effects around it, etc.
 - Zombie's generate slow down and poison effects around them when hurt. Not constantly as that would kill trees and affect biters badly.
@@ -70,6 +70,12 @@ Unknowns / Undecided
 - Zombies get faster at night time?
 - Zombies can drive vehicles, like crazy driver, or maybe in the direction of their path request? Mod setting to disable.
 - Zombies able to use player weapons to shoot other players, vehicles, combat robots? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences. When shooting the zombie should have a temporary speed reduction like the player does.
+- Player line to truly best corpse/zombie. Possible approaches include:
+    - The most expensive armor worn and the equipment within the armor. This would have to treat all raw resources as an equal value and so may not truly be best for some mods; But seems the best generic way and should cover most standard mods.
+    - Total craft time for all armor and equipment ingredients from raw. So ignore resource count and just deal with crafting times.
+    - Some combination of raw items and craft time.
+    - The one with the most items in it. Ignore stack type, size, etc. Just count raw items.
+    - The best user experience would be to include a GUI and let the player select the corpse/zombie to have their main line point at. This could list the armors, equipment in the armor, and let the player see the inventory items if wanted. Could also include the corpse life remaining time and the rough map location.
 
 
 
