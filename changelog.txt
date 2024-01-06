@@ -1,9 +1,10 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.6
-Date: 2023-XXXXX
+Date: 2024-01-06
   Features:
   Changes:
   Bugfixes:
+    - FIXED: When a player has lines to zombie/corpses and they leave and rejoin the server they don't have the lines any more. Once they next die they then get lines to the new and all previous zombie/corpses.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.5

@@ -1,7 +1,7 @@
 --[[
     Library to support drawing lines from a player to targets.
     This handles the player dying, as when they respawn the line will need drawing again. The player getting in and out of vehicles is handled by Factorio automatically.
-    This library is used by calling the RegisterPlayerLines() function once in root of control.lua. With the public functions then being called as required to add and remove lines. Lines to target entities that become invalid (die) will be automatically removed. Lines will only be drawn if the source and target are on the same surface; they will be tracked while the player is on a different surface and XXX when the player returns to that surface.
+    This library is used by calling the RegisterPlayerLines() function once in root of control.lua. With the public functions then being called as required to add and remove lines. Lines to target entities that become invalid (die) will be automatically removed. Lines will only be drawn if the source and target are on the same surface; they will be tracked while the player is on a different surface (removed if the target of the line becomes invalid) and when the player returns to that surface the lines will be added back.
     If a player loses/gains a character without dying & re-spawning the lines won't be recreated. The module does handle surfaces correctly for the player, i.e. a player and target on different surfaces won't draw a line, but won't error or remove the line object either. The module does handle players entering and exiting Editor Mode. If both the source and target are teleported to another surface then the line details will update to this new situation.
 --]]
 --
@@ -32,6 +32,7 @@ local PlayerLines = {} ---@class Utility_PlayerLines
 --- Only needs to be called once by the mod.
 PlayerLines.RegisterPlayerAlerts = function()
     Events.RegisterHandlerEvent(defines.events.on_player_respawned, "PlayerLines._OnPlayerRespawned", PlayerLines._OnPlayerRespawned)
+    Events.RegisterHandlerEvent(defines.events.on_player_joined_game, "PlayerLines._OnPlayerJoined", PlayerLines._OnPlayerJoined)
     Events.RegisterHandlerEvent(defines.events.on_player_changed_surface, "PlayerLines._OnPlayerChangedSurface", PlayerLines._OnPlayerChangedSurface)
     Events.RegisterHandlerEvent(defines.events.on_player_toggled_map_editor, "PlayerLines._OnPlayerToggledMapEditor", PlayerLines._OnPlayerToggledMapEditor)
 end
@@ -142,6 +143,23 @@ end
 
 ---@param eventData EventData.on_player_respawned
 PlayerLines._OnPlayerRespawned = function(eventData)
+    local RealCode = function(eventData)
+        if global.UTILITYPLAYERLINES == nil then return end
+        PlayerLines._RedrawPlayerLines(eventData.player_index)
+    end
+
+    -- FUTURE: run it all in a safety bubble.
+    local errorMessage, fullErrorDetails = LoggingUtils.RunFunctionAndCatchErrors(RealCode, eventData)
+    if errorMessage ~= nil then
+        LoggingUtils.LogPrintError(errorMessage, true)
+    end
+    if fullErrorDetails ~= nil then
+        LoggingUtils.ModLog(fullErrorDetails, false)
+    end
+end
+
+---@param eventData EventData.on_player_joined_game
+PlayerLines._OnPlayerJoined = function(eventData)
     local RealCode = function(eventData)
         if global.UTILITYPLAYERLINES == nil then return end
         PlayerLines._RedrawPlayerLines(eventData.player_index)

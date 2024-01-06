@@ -11,7 +11,6 @@ end
 ZombieEngineerPlayerLines.OnLoad = function()
     MOD.Interfaces.ZombieEngineerPlayerLines = MOD.Interfaces.ZombieEngineerPlayerLines or {} ---@class InternalInterfaces_ZombieEngineerPlayerLines
     MOD.Interfaces.ZombieEngineerPlayerLines.RecordPlayerEntityLine = ZombieEngineerPlayerLines.RecordPlayerEntityLine
-    MOD.Interfaces.ZombieEngineerPlayerLines.ReloadPlayerEntityLines = ZombieEngineerPlayerLines.ReloadPlayerEntityLines
 end
 
 ZombieEngineerPlayerLines.OnStartup = function()
@@ -21,7 +20,7 @@ end
 ZombieEngineerPlayerLines.OnSettingChanged = function(event)
     -- Per player mod settings for `line to body` changed only.
     if event ~= nil and event.setting_type == "runtime-per-user" and (event.setting == "zombie_engineer-line_to_body_thickness" or event.setting == "zombie_engineer-line_to_body_color_selection_type" or event.setting == "zombie_engineer-line_to_body_color_selector_value") then
-        ZombieEngineerPlayerLines.ReloadPlayerEntityLines(event.player_index)
+        ZombieEngineerPlayerLines.UpdatePlayerEntityLineSettings(event.player_index)
     end
 end
 
@@ -45,7 +44,7 @@ ZombieEngineerPlayerLines.RecordPlayerEntityLine = function(targetEntity, player
 end
 
 ---@param playerIndex uint
-ZombieEngineerPlayerLines.ReloadPlayerEntityLines = function(playerIndex)
+ZombieEngineerPlayerLines.UpdatePlayerEntityLineSettings = function(playerIndex)
     local RealCode = function(playerIndex)
         local player = game.get_player(playerIndex) ---@cast player -nil
         local currentPlayerLines = PlayerLines.GetLinesForPlayerIndex(playerIndex)

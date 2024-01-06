@@ -46,7 +46,7 @@ Nice To Have
 + When a player kills a zombie, add an announcement that they have put the source player to rest.
 - Player's zombies killed by other entities should have this announced just like when a player kills a player's zombie. Include what killed them (entity or just damage type).
 + Add a line from the player to their zombie/it's corpse if it dies. Include a per player mod setting to control if this is shown or not. Also the line's thickness.
------ NEXT ----- Add distinctive line to "oldest" zombie/corpse. This will be an initial attempt at the "best" corpse. This won't account for corpse decay time vs a live zombie.
+----- NEXT ----- Add distinctive line to "oldest" zombie/corpse. This will be an initial attempt at the "best" corpse. This won't account for corpse decay time vs a live zombie. JD suggested doing the best line as the opposite color to the main players line, but would need a mod option to override the color, as it might end up tile colored. Maybe do the other lines as semi opaque and the best line as full color. Test with lots of corpse lines to check how it will seem on JD's stream at worst times.
 - Per player map markers for corpses and zombies. Per player mod option for them. Maybe just show "Best".
 + Name a grave generated zombie after a list of names. Have a mod setting to define these for now.
 - Add graphical effects to zombie so it stands out. Maybe odd colors, cloud of effects around it, etc.
