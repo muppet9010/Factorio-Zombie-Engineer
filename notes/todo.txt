@@ -1,3 +1,18 @@
+Best line visualisation test:
+/sc
+local surface = game.player.surface
+local targets = surface.find_entities_filtered({type="tree", radius=100, position=game.player.position})
+local bestTarget = targets[#targets]
+local source = game.player.character
+for _, target in pairs(targets) do
+	local gap_length, dash_length, color = 0.5, 0.75, {1,0,0,0.001}
+	if target == bestTarget then gap_length, dash_length, color = 0, 0, {1,0,0,0.5} end
+	rendering.draw_line({color=color, width=2, from=source, to=target, surface=surface, gap_length=gap_length, dash_length=dash_length})
+end
+
+
+
+
 Bugs/Next
 ---------
 - Try doing a STOP command on a zombie for infinite time. See if that makes HasCommand() return negative. Might be better also than checking for the wander state.
@@ -70,12 +85,20 @@ Unknowns / Undecided
 - Zombies get faster at night time?
 - Zombies can drive vehicles, like crazy driver, or maybe in the direction of their path request? Mod setting to disable.
 - Zombies able to use player weapons to shoot other players, vehicles, combat robots? Should always be a melee attack on buildings. Make mod setting to disable this. Will need to be a scripted attack as we can't change the units attack properties dynamically and replacing the entity based on weapon/ammo types would likely have unintended consequences. When shooting the zombie should have a temporary speed reduction like the player does.
-- Player line to truly best corpse/zombie. Possible approaches include:
-    - The most expensive armor worn and the equipment within the armor. This would have to treat all raw resources as an equal value and so may not truly be best for some mods; But seems the best generic way and should cover most standard mods.
-    - Total craft time for all armor and equipment ingredients from raw. So ignore resource count and just deal with crafting times.
-    - Some combination of raw items and craft time.
-    - The one with the most items in it. Ignore stack type, size, etc. Just count raw items.
-    - The best user experience would be to include a GUI and let the player select the corpse/zombie to have their main line point at. This could list the armors, equipment in the armor, and let the player see the inventory items if wanted. Could also include the corpse life remaining time and the rough map location.
+- Player line to truly best corpse/zombie.
+    Order armors based on:
+        - Armor equipment grid size - more total squares is better.
+        - Armor equipment total power generation and usage (added together) to give the best equipment combination.
+        - Armor inventory size bonus - intended for ranking armors without an equipment grid.
+        - Oldest zombie/corpse. - I could do some sort of item-count/stack-fullness in inventory, but I don't really think this is that helpful.
+    Notes:
+        - Can cache the per armor grid size and the power usage/drain per equipment type. On configuration_changed can check the values haven't changed and if they have update the cache values. Then update all active zombie/corpse armor scores and find a new best for each player. The lines of players will need recreating as this is a save load activity and so our OnLoad may have already fired. We currently can't distinguish between on_init() and on_configuration_changed(), so would end up running this twice at present when a new save is started; But this seems fine tbh.
+    Possible other approaches include:
+        - The most expensive armor worn and the equipment within the armor. This would have to treat all raw resources as an equal value and so may not truly be best for some mods. When multiple recipes can make an ingredient then take the "cheapest" one, which requires each alternative recipe to be explored. The "cost" of each item found in a chain would need caching so that we only walk each sub chain once. Would only be valid until a mod update though, so maybe we can do this in data-final-fixes stage and persist out via a hack? Or maybe from init/migrations and do for all armors at once. basically to avoid sudden lag in extreme large mods. As we can't just look top down in terms of armors and their ingredients to recipes. As ingredients are a name and we need to search ALL recipes to find the recipes that can make that item.
+        - Total craft time for all armor and equipment ingredients from raw. So ignore resource count and just deal with crafting times. Same data exploration required as trying to find raw ingredients for an armor.
+        - Some combination of raw items and craft time.
+        - The one with the most items in it. Ignore stack type, size, etc. Just count raw items.
+        - The best user experience would be to include a GUI and let the player select the corpse/zombie to have their main line point at. This could list the armors, equipment in the armor, and let the player see the inventory items if wanted. Could also include the corpse life remaining time and the rough map location.
 
 
 
