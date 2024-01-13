@@ -1,5 +1,5 @@
-local CollisionMaskUtil = require("__core__/lualib/collision-mask-util")
-local PrototypeLikeLists = require("utility.helper-utils.prototype-like-lists-data-stage")
+local CollisionMaskUtil = require("__core__.lualib.collision-mask-util")
+local PrototypeLikeLists = require("utility.data-stage.prototype-lists")
 
 local zombieEngineerPathCollisionLayer = data.raw["simple-entity"]["zombie_engineer-zombie_engineer_path_collision_layer"].collision_mask[1]
 

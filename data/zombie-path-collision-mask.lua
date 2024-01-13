@@ -6,7 +6,7 @@
     I am only adding to prototypes that already have the "player-layer". This way I'm not adding new incompatibilities between things.
 ]]
 
-local CollisionMaskUtil = require("__core__/lualib/collision-mask-util")
+local CollisionMaskUtil = require("__core__.lualib.collision-mask-util")
 
 local zombieEngineerPathCollisionLayer = CollisionMaskUtil.get_first_unused_layer() --[[@as data.CollisionMaskLayer]]
 

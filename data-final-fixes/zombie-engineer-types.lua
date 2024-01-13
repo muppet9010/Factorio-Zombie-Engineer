@@ -5,7 +5,7 @@
 -- This is designed around vanilla weapons and armors. I'm still not entirely happy with it, but its better than older simpler approaches.
 
 local TableUtils = require('utility.helper-utils.table-utils')
-local PrototypeUtils = require("utility.helper-utils.prototype-utils-data-stage")
+local PrototypeUtils = require("utility.data-stage.prototype-utils")
 
 local characterPrototypeReference = data.raw["character"]["character"]
 

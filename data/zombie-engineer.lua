@@ -1,7 +1,7 @@
 -- Create the initial no-armor zombie engineer. We create the armored versions later once other mods have added/changed armors in the game.
 
 local TableUtils = require("utility.helper-utils.table-utils")
-local PrototypeUtils = require("utility.helper-utils.prototype-utils-data-stage")
+local PrototypeUtils = require("utility.data-stage.prototype-utils")
 
 local characterPrototypeReference = data.raw["character"]["character"]
 
