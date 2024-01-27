@@ -3,3 +3,10 @@
 
 global.debugSettings = global.debugSettings or {} ---@class Global_DebugSettings
 global.debugSettings.testing = false -- Turn it off
+
+
+
+-- Remove a now unused global.
+if global.ZombieEngineerCreation ~= nil then
+    global.ZombieEngineerCreation.playerWornArmorOnDeath = nil ---@type nil # Just to stop it alerting for missing type.
+end

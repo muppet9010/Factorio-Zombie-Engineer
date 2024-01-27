@@ -27,6 +27,7 @@ end
 ---@param targetEntity LuaEntity
 ---@param player LuaPlayer
 ---@param lineIdName string
+-- TODO: need to take zombieEngineer object ref. Then use it to get the "value" to find best.
 ZombieEngineerPlayerLines.RecordPlayerEntityLine = function(targetEntity, player, lineIdName)
     local RealCode = function(targetEntity, player, lineIdName)
         local playerLineSettings = ZombieEngineerPlayerLines.GetPlayersLineModSettings(player, player.index)

@@ -21,6 +21,8 @@ local EntityTypeGroups = require("utility.lists.entity-type-groups")
 ---@field textColor Color
 ---@field nameRenderId? uint64
 ---@field inventory? LuaInventory
+---@field armorWornName? string
+---@field armorWornEquipmentCounts? table<string, uint>
 ---@field objective ZombieEngineer_Objective
 ---@field action ZombieEngineer_Action
 ---@field distractionTarget? LuaEntity

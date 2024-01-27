@@ -55,6 +55,7 @@ ZombieEngineerDeath.OnEntityDiedZombieEngineer = function(eventData)
 
     ---@diagnostic disable-next-line: missing-fields # Temporary work around until Factorio docs and FMTK updated to allow per type field specification.
     local zombieCorpse = zombieEngineer.surface.create_entity({ name = "character-corpse", position = entity.position, force = corpseForce, direction = corpseDirection, inventory_size = inventorySize, player_index = playerIndex, player = sourcePlayer })
+    --TODO: need to record zombie corpse
 
     if zombieCorpse == nil then
         LoggingUtils.PrintError("Zombie corpse failed to create. Here: " .. LoggingUtils.MakeGpsRichText_Entity(entity))

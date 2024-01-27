@@ -3,10 +3,15 @@ local LoggingUtils = require("utility.helper-utils.logging-utils")
 local InventoryUtils = require("utility.helper-utils.inventory-utils")
 local StringUtils = require("utility.helper-utils.string-utils")
 
----@class ZombieEngineer_TestingSettings
+---@class ZombieEngineerCreation_TestingSettings
 local TestingSettings = {
     giveZombieDefaultItems = false
 }
+
+--- The names of armor and equipment worn.
+---@class ZombieEngineerCreation_WornArmorEquipmentNames
+---@field armorName? string
+---@field equipment? table<string, uint> # A table of equipment name to count.
 
 local ZombieEngineerCreation = {} ---@class Class_ZombieEngineerCreation
 
@@ -14,7 +19,7 @@ ZombieEngineerCreation.CreateGlobals = function()
     global.ZombieEngineerCreation = global.ZombieEngineerCreation or {} ---@class Global_ZombieEngineerCreation
 
     global.ZombieEngineerCreation.playerDeathCounts = global.ZombieEngineerCreation.playerDeathCounts or {} ---@type table<uint, uint> # Player Index to death count.
-    global.ZombieEngineerCreation.playerWornArmorOnDeath = global.ZombieEngineerCreation.playerWornArmorOnDeath or {} ---@type table<uint, string> # Player Index to armor name.
+    global.ZombieEngineerCreation.playerWornArmorEquipmentOnDeath = global.ZombieEngineerCreation.playerWornArmorEquipmentOnDeath or {} ---@type table<uint, ZombieEngineerCreation_WornArmorEquipmentNames> # Player Index to object with armor and equipment names.
 
     global.ZombieEngineerCreation.Settings = {
         zombieNames = {}, ---@type string[] # Populated as part of OnStartup or when the relevant mod setting changes.
@@ -44,7 +49,7 @@ ZombieEngineerCreation.OnSettingChanged = function(event)
     end
 end
 
---- The player could get revived at this point by another mod. But the player's character is still present here.
+--- The player could get revived after this, but before the real player death event, by another mod. Get some details here as the player's character is still present.
 ---@param eventData EventData.on_pre_player_died
 ZombieEngineerCreation.OnPrePlayerDied = function(eventData)
     local player = game.get_player(eventData.player_index)
@@ -53,24 +58,23 @@ ZombieEngineerCreation.OnPrePlayerDied = function(eventData)
         return
     end
 
-    -- Record the player's worn armor if there is any.
+    -- Get any armor and equipment worn by the player.
     local characterEntity = player.character
-    local wornArmorName ---@type string
+    local wornArmorEquipment = {} ---@type ZombieEngineerCreation_WornArmorEquipmentNames
     if characterEntity ~= nil then
         local armorInventory = characterEntity.get_inventory(defines.inventory.character_armor)
-        if armorInventory ~= nil then
-            local armorInventoryContents = armorInventory.get_contents()
-            for armorName in pairs(armorInventoryContents) do
-                if wornArmorName == nil then
-                    wornArmorName = armorName
-                else
-                    LoggingUtils.PrintError("Player '" .. player.name .. "' had more than 1 item in their armor inventory. Just using the first one.")
-                end
+        if armorInventory ~= nil and not armorInventory.is_empty() then
+            local armorItem = armorInventory[#armorInventory] -- Just get last item as it should only be 1 ever.
+            wornArmorEquipment = { armorName = armorItem.name }
+            local armorGrid = armorItem.grid
+            if armorGrid ~= nil then
+                wornArmorEquipment.equipment = armorGrid.get_contents()
             end
         end
     end
+
     -- Record the armor (or none) found for the player.
-    global.ZombieEngineerCreation.playerWornArmorOnDeath[eventData.player_index] = wornArmorName
+    global.ZombieEngineerCreation.playerWornArmorEquipmentOnDeath[eventData.player_index] = wornArmorEquipment
 end
 
 -- The player has really died at this point. The player's character is gone at this point.
@@ -123,7 +127,8 @@ ZombieEngineerCreation.OnPlayerDied = function(eventData)
     end
 
     -- Players position has been returned to their corpse by the point this event fires (if they were in map view at time of death).
-    ZombieEngineerCreation.CreateZombie(player, eventData.player_index, player_name, player_color, zombieName, player_color, player_surface, player_position, zombieInventory, global.ZombieEngineerCreation.playerWornArmorOnDeath[eventData.player_index])
+    local playerWornArmorEquipmentNames = global.ZombieEngineerCreation.playerWornArmorEquipmentOnDeath[eventData.player_index]
+    ZombieEngineerCreation.CreateZombie(player, eventData.player_index, player_name, player_color, zombieName, player_color, player_surface, player_position, zombieInventory, playerWornArmorEquipmentNames.armorName, playerWornArmorEquipmentNames.equipment)
 end
 
 ---@param eventData EventData.on_entity_died
@@ -133,18 +138,19 @@ ZombieEngineerCreation.OnEntityDiedGravestone = function(eventData)
     ZombieEngineerCreation.CreateZombie(nil, nil, "gravestone", nil, nil, nil, diedEntity.surface, diedEntity.position, nil, nil)
 end
 
----@param player? LuaPlayer
----@param player_index? uint
+---@param player? LuaPlayer # The player the zombie is for.
+---@param player_index? uint # The player_index the zombie is for.
 ---@param sourceName string
 ---@param entityColor? Color
 ---@param zombieName? string
 ---@param textColor? Color
 ---@param surface LuaSurface
 ---@param zombieTargetPosition MapPosition
----@param zombieInventory LuaInventory? # A script inventory for the zombie.
----@param zombieArmorName string? # The name of the armor the zombie should be wearing.
+---@param zombieInventory? LuaInventory # A script inventory for the zombie.
+---@param zombieArmorName? string # The name of the armor the zombie should be wearing.
+---@param zombieArmorEquipmentCounts? table<string, uint> # The name and count of equipment in the armor the zombie should be wearing.
 ---@return ZombieEngineer?
-ZombieEngineerCreation.CreateZombie = function(player, player_index, sourceName, entityColor, zombieName, textColor, surface, zombieTargetPosition, zombieInventory, zombieArmorName)
+ZombieEngineerCreation.CreateZombie = function(player, player_index, sourceName, entityColor, zombieName, textColor, surface, zombieTargetPosition, zombieInventory, zombieArmorName, zombieArmorEquipmentCounts)
     local zombieEngineer = {} ---@class ZombieEngineer
     zombieEngineer.sourcePlayer = player
     zombieEngineer.sourceName = sourceName
@@ -155,6 +161,8 @@ ZombieEngineerCreation.CreateZombie = function(player, player_index, sourceName,
     zombieEngineer.entityColor = entityColor or global.ZombieEngineerGlobal.Settings.zombieEntityColor
     zombieEngineer.textColor = textColor or global.ZombieEngineerGlobal.Settings.zombieTextColor
     zombieEngineer.inventory = zombieInventory
+    zombieEngineer.armorWornName = zombieArmorName
+    zombieEngineer.armorWornEquipmentCounts = zombieArmorEquipmentCounts
 
     local zombieEntityName = "zombie_engineer-zombie_engineer"
     if zombieArmorName ~= nil then
@@ -190,8 +198,9 @@ ZombieEngineerCreation.CreateZombie = function(player, player_index, sourceName,
         zombieEngineer.nameRenderId = rendering.draw_text({ text = zombieName, surface = zombieEngineer.surface, target = zombieEngineer.entity, color = zombieEngineer.textColor, target_offset = { 0.0, -2.0 }, scale_with_zoom = true, alignment = "center", vertical_alignment = "middle" })
     end
 
-    if player ~= nil then
-        MOD.Interfaces.ZombieEngineerPlayerLines.RecordPlayerEntityLine(zombieEngineer.entity, player, "zombieEngineerEntity_" .. zombieName)
+    if zombieEngineer.sourcePlayer ~= nil then
+        -- TODO: pass the armor and equipment into the line class which will need to store it and do the processing of this.
+        MOD.Interfaces.ZombieEngineerPlayerLines.RecordPlayerEntityLine(zombieEngineer.entity, zombieEngineer.sourcePlayer, "zombieEngineerEntity_" .. zombieEngineer.zombieName)
     end
 
     return zombieEngineer

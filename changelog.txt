@@ -1,10 +1,11 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.6
-Date: 2024-01-06
+Date: 2024-01-14
   Features:
   Changes:
+    - Player corpse line now distinguishes between the "best" armor zombie/corpse and any other zombie/corpses. The best armor is based on equipment grid size, then total power generation/storage/usage.
   Bugfixes:
-    - FIXED: When a player has lines to zombie/corpses and they leave and rejoin the server they don't have the lines any more. Once they next die they then get lines to the new and all previous zombie/corpses.
+    - FIXED: When a player has lines to zombie/corpses and they leave and rejoin the server they don't have the lines any more. Once they next die they then get lines to the new and all previous zombie/corpses, then inventory size bonus, and finally the oldest zombie/corpse.
   Info:
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.5

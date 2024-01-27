@@ -13,6 +13,8 @@ end
 
 
 
+
+
 Bugs/Next
 ---------
 - Try doing a STOP command on a zombie for infinite time. See if that makes HasCommand() return negative. Might be better also than checking for the wander state.
@@ -61,7 +63,14 @@ Nice To Have
 + When a player kills a zombie, add an announcement that they have put the source player to rest.
 - Player's zombies killed by other entities should have this announced just like when a player kills a player's zombie. Include what killed them (entity or just damage type).
 + Add a line from the player to their zombie/it's corpse if it dies. Include a per player mod setting to control if this is shown or not. Also the line's thickness.
------ NEXT ----- Add distinctive line to "oldest" zombie/corpse. This will be an initial attempt at the "best" corpse. This won't account for corpse decay time vs a live zombie. JD suggested doing the best line as the opposite color to the main players line, but would need a mod option to override the color, as it might end up tile colored. Maybe do the other lines as semi opaque and the best line as full color. Test with lots of corpse lines to check how it will seem on JD's stream at worst times.
++ Add distinctive line to the "best" zombie/corpse based on armor worn. This won't account for corpse decay time vs a live zombie.
+    Order armors based on:
+        - Armor equipment grid size - more total squares is better.
+        - Armor equipment total power generation, usage & storage (added together) to give the best equipment combination. Use the same type of value (power usage) for all to allow a simple addition, rather than trying to compare movement bonus speed to energy stored.
+        - Armor inventory size bonus - intended for ranking armors without an equipment grid.
+        - Oldest zombie/corpse. - I could do some sort of item-count/stack-fullness in inventory, but I don't really think this is that helpful.
+    Notes:
+        - Can cache the per armor grid size and the power usage/drain per equipment type. On configuration_changed can check the values haven't changed and if they have update the cache values. Then update all active zombie/corpse armor scores and find a new best for each player. The lines of players will need recreating as this is a save load activity and so our OnLoad may have already fired. We currently can't distinguish between on_init() and on_configuration_changed(), so would end up running this twice at present when a new save is started; But this seems fine tbh.
 - Per player map markers for corpses and zombies. Per player mod option for them. Maybe just show "Best".
 + Name a grave generated zombie after a list of names. Have a mod setting to define these for now.
 - Add graphical effects to zombie so it stands out. Maybe odd colors, cloud of effects around it, etc.
@@ -93,6 +102,7 @@ Unknowns / Undecided
         - Oldest zombie/corpse. - I could do some sort of item-count/stack-fullness in inventory, but I don't really think this is that helpful.
     Notes:
         - Can cache the per armor grid size and the power usage/drain per equipment type. On configuration_changed can check the values haven't changed and if they have update the cache values. Then update all active zombie/corpse armor scores and find a new best for each player. The lines of players will need recreating as this is a save load activity and so our OnLoad may have already fired. We currently can't distinguish between on_init() and on_configuration_changed(), so would end up running this twice at present when a new save is started; But this seems fine tbh.
+        - This won't account for corpse decay time vs a live zombie.
     Possible other approaches include:
         - The most expensive armor worn and the equipment within the armor. This would have to treat all raw resources as an equal value and so may not truly be best for some mods. When multiple recipes can make an ingredient then take the "cheapest" one, which requires each alternative recipe to be explored. The "cost" of each item found in a chain would need caching so that we only walk each sub chain once. Would only be valid until a mod update though, so maybe we can do this in data-final-fixes stage and persist out via a hack? Or maybe from init/migrations and do for all armors at once. basically to avoid sudden lag in extreme large mods. As we can't just look top down in terms of armors and their ingredients to recipes. As ingredients are a name and we need to search ALL recipes to find the recipes that can make that item.
         - Total craft time for all armor and equipment ingredients from raw. So ignore resource count and just deal with crafting times. Same data exploration required as trying to find raw ingredients for an armor.
