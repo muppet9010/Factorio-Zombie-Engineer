@@ -14,6 +14,11 @@ end
 
 
 
+Notes from email:
+- Use destroyed event to track when corpse or zombie is destroyed. We can remove line actively, but more importantly to update best lines.
+- Also see if anything obvious stands out for causing lag when respawning with hundreds of zombie lines active. JD had this on stream.
+
+
 
 Bugs/Next
 ---------
